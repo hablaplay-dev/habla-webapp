@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Habla! — Football Predictions</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Tailwind config (optional fine-tune)
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            habla: {
+              50: "#f8fafc",
+              100: "#eef2f7",
+              200: "#e2e8f0",
+              300: "#cbd5e1",
+              400: "#94a3b8",
+              500: "#64748b",
+              600: "#475569",
+              700: "#334155",
+              800: "#1f2937",
+              900: "#0f172a"
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Simple fade animations */
+    .fade-enter { opacity: 0; transform: translateY(6px); }
+    .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity .15s ease, transform .15s ease; }
+    .btn { @apply inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold border border-habla-300 hover:bg-habla-50 disabled:opacity-50 disabled:cursor-not-allowed; }
+    .btn-primary { @apply bg-black text-white border-black hover:opacity-90; }
+    .pill { @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm bg-habla-100 text-habla-700; }
+    .tag { @apply inline-flex items-center rounded-md bg-habla-100 px-2 py-0.5 text-xs font-medium text-habla-700; }
+    .card { @apply rounded-2xl border border-habla-200 bg-white shadow-sm; }
+    .input { @apply w-full rounded-xl border border-habla-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black; }
+    .link { @apply text-habla-700 hover:text-black hover:underline; }
+    .sr { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  </style>
+</head>
+<body class="bg-habla-50 text-habla-900">
+  <!-- Top Nav -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-habla-200">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-8">
+        <a href="#/matches" class="flex items-center gap-2 font-black text-xl">
+          <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white">H!</span>
+          Habla!
+        </a>
+        <nav class="hidden md:flex items-center gap-6 text-sm">
+          <a href="#/matches" class="link">Matches</a>
+          <a href="#/tickets" class="link">My Tickets</a>
+          <a href="#/results" class="link">Results</a>
+          <a href="#/store" class="link">Store</a>
+          <a href="#/wallet" class="link">Wallet</a>
+          <a href="#/how-to-play" class="link">How to Play</a>
+          <a href="#/faq" class="link">FAQ</a>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <div id="balancePill" class="pill hidden">
+          <span id="lukasBalance">0</span> Lukas
+        </div>
+        <button id="topUpBtn" class="btn" onclick="openTopUp()" title="Top up Lukas">Top Up</button>
+        <div id="authArea" class="ml-2">
+          <!-- Populated by JS: Login / User menu -->
+        </div>
+        <button class="md:hidden btn" onclick="toggleMobileMenu()">☰</button>
+      </div>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobileMenu" class="hidden md:hidden border-t border-habla-200 bg-white">
+      <nav class="px-4 py-3 flex flex-col gap-2 text-sm">
+        <a href="#/matches" class="link">Matches</a>
+        <a href="#/tickets" class="link">My Tickets</a>
+        <a href="#/results" class="link">Results</a>
+        <a href="#/store" class="link">Store</a>
+        <a href="#/wallet" class="link">Wallet</a>
+        <a href="#/how-to-play" class="link">How to Play</a>
+        <a href="#/faq" class="link">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Notifications (toasts) -->
+  <div id="toasts" class="fixed top-20 right-4 z-50 space-y-2"></div>
+
+  <!-- Main -->
+  <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+    <div id="app" class="fade-enter"></div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-habla-200 bg-white">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
+      <div>
+        <div class="font-semibold mb-2">Game</div>
+        <ul class="space-y-1">
+          <li><a href="#/how-to-play" class="link">How to Play</a></li>
+          <li><a href="#/rules" class="link">Rules & Scoring</a></li>
+          <li><a href="#/transparency" class="link">Transparency</a></li>
+          <li><a href="#/faq" class="link">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="font-semibold mb-2">Account</div>
+        <ul class="space-y-1">
+          <li><a href="#/profile" class="link">My Profile</a></li>
+          <li><a href="#/wallet" class="link">Wallet</a></li>
+          <li><a href="#/history" class="link">Transaction History</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="font-semibold mb-2">Support</div>
+        <ul class="space-y-1">
+          <li><a href="#/help" class="link">Help Center</a></li>
+          <li><a href="#/contact" class="link">Contact Us</a></li>
+          <li><a href="#/report" class="link">Report Issue</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="font-semibold mb-2">Legal</div>
+        <ul class="space-y-1">
+          <li><a href="#/terms" class="link">Terms of Service</a></li>
+          <li><a href="#/privacy" class="link">Privacy Policy</a></li>
+          <li><a href="#/responsible" class="link">Responsible Gaming</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="text-center text-xs text-habla-500 pb-8">
+      © Habla! 2025 · All rights reserved
+    </div>
+  </footer>
+
+  <!-- Modals -->
+  <div id="modalRoot"></div>
+
+  <script>
+    /* ---------------------------------------------------------
+       In-memory SPA scaffold (no backend). The UI mirrors the
+       microservices: Auth, Wallet, Pagos, Torneos, Combinadas,
+       Scoring, Leaderboard, Tienda, Transparencia, Notifs.
+       Replace stubs with real API calls later.
+       --------------------------------------------------------- */
+
+    // ---------- Utilities ----------
+    const $ = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+    const fmt = (n) => new Intl.NumberFormat('en-US').format(n);
+    const nowIso = () => new Date().toISOString();
+    const uid = () => Math.random().toString(36).slice(2,10);
+    const hashCombo = combo => JSON.stringify([
+      combo.p1x2, combo.btts, combo.over25, combo.red, `${combo.exact.h}-${combo.exact.a}`
+    ]);
+
+    const toast = (msg, type="info") => {
+      const colors = {
+        info: "bg-white border-habla-300",
+        success: "bg-white border-green-300",
+        warn: "bg-white border-yellow-300",
+        error: "bg-white border-red-300"
+      };
+      const t = document.createElement('div');
+      t.className = `card border ${colors[type]} p-3 text-sm shadow-lg`;
+      t.textContent = msg;
+      $("#toasts").appendChild(t);
+      setTimeout(()=> t.remove(), 2600);
+    };
+
+    const openModal = (html) => {
+      const root = document.getElementById("modalRoot");
+      const wrap = document.createElement('div');
+      wrap.className = "fixed inset-0 z-50 flex items-center justify-center";
+      wrap.innerHTML = `
+        <div class="absolute inset-0 bg-black/30" onclick="this.parentElement.remove()"></div>
+        <div class="relative card w-[92vw] max-w-2xl p-5">${html}</div>
+      `;
+      root.appendChild(wrap);
+      return wrap;
+    };
+
+    const requireAuth = (actionName="this action") => {
+      if (!state.isAuth) {
+        openLoginModal(actionName);
+        return false;
+      }
+      return true;
+    };
+
+    // ---------- Fake Data ----------
+    const state = {
+      isAuth: false,
+      user: null,
+      wallet: { lukas: 0, movements: [] }, // movements: {id, type:credit|debit, amount, note, ts}
+      tickets: [], // {id, userId, matchId, fee, combo, hash, ts, points, position}
+      orders: [],  // store redemptions
+      notifications: [],
+      // Matches / Tournaments
+      matches: [
+        {
+          id: "m1",
+          home: "Manchester United", away: "Liverpool FC",
+          homeCode: "MUN", awayCode: "LIV",
+          kickoff: Date.now() + 48*60*1000,  // 48 mins
+          entryFee: 50, prizePool: 4800, players: 142,
+          status: "open", score: null
+        },
+        {
+          id: "m2",
+          home: "FC Barcelona", away: "Real Madrid",
+          homeCode: "BAR", awayCode: "RMA",
+          kickoff: Date.now() - 12*60*1000,  // started 12 mins ago
+          entryFee: 30, prizePool: 2490, players: 80,
+          status: "locked", score: "1-0 12'"
+        },
+        {
+          id: "m3",
+          home: "Chelsea FC", away: "Arsenal FC",
+          homeCode: "CHE", awayCode: "ARS",
+          kickoff: Date.now() - 50*60*1000,
+          entryFee: 25, prizePool: 1575, players: 67,
+          status: "in_play", score: "2-1 HT"
+        }
+      ],
+      store: [
+        {id:"s1", name:"Football Jersey", price: 5000, type:"physical", stock: 5},
+        {id:"s2", name:"Match Tickets (Gift)", price: 1200, type:"digital", stock: 25},
+        {id:"s3", name:"$25 Gift Card", price: 2500, type:"digital", stock: 50},
+        {id:"s4", name:"PlayStation 5", price: 45000, type:"physical", stock: 1},
+      ],
+      topPlayersToday: [
+        {name:"PlayerOne", pts:18},
+        {name:"FootballFan", pts:16},
+        {name:"PredictoPro", pts:15}
+      ],
+      revealed: { // transparency data after kickoff
+        m3: [
+          {user:"Alice", combo:{p1x2:"Home", btts:"Yes", over25:"Yes", red:"No", exact:{h:2,a:1}}},
+          {user:"Bob",   combo:{p1x2:"Draw", btts:"No",  over25:"No",  red:"No", exact:{h:0,a:0}}},
+        ]
+      },
+      leaderboards: {
+        // filled when finished (demo stub)
+      }
+    };
+
+    // Seed demo user for quick testing (not logged by default)
+    const demoUser = { id:"u1", name:"Gustavo", email:"gustavo@example.com" };
+
+    // ---------- Auth ----------
+    function renderAuthArea() {
+      const c = document.getElementById('authArea');
+      if (!state.isAuth) {
+        c.innerHTML = `<button class="btn" onclick="openLoginModal()">Log in / Sign up</button>`;
+        $('#balancePill').classList.add('hidden');
+        return;
+      }
+      c.innerHTML = `
+        <div class="relative inline-block">
+          <button class="btn" onclick="toggleUserMenu()">Hello, ${state.user.name} ▾</button>
+          <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 card p-2 text-sm">
+            <a href="#/profile" class="block px-3 py-2 rounded-md hover:bg-habla-100">Profile</a>
+            <a href="#/history" class="block px-3 py-2 rounded-md hover:bg-habla-100">History</a>
+            <a href="#/wallet" class="block px-3 py-2 rounded-md hover:bg-habla-100">Wallet</a>
+            <button class="w-full text-left px-3 py-2 rounded-md hover:bg-habla-100" onclick="logout()">Log out</button>
+          </div>
+        </div>
+      `;
+      $('#lukasBalance').textContent = fmt(state.wallet.lukas);
+      $('#balancePill').classList.remove('hidden');
+    }
+
+    function toggleUserMenu() {
+      const m = document.getElementById('userMenu');
+      if (m) m.classList.toggle('hidden');
+    }
+    function toggleMobileMenu(){
+      const m = document.getElementById('mobileMenu');
+      m.classList.toggle('hidden');
+    }
+
+    function openLoginModal(actionName){
+      const modal = openModal(`
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-bold">Log in / Sign up</h2>
+          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
+        </div>
+        <p class="mt-2 text-sm text-habla-600">Inicia sesión para participar en torneos, canjear premios y usar tu billetera.</p>
+        <div class="mt-4 space-y-3">
+          <input id="loginEmail" class="input" placeholder="Email"/>
+          <button class="btn-primary w-full" onclick="demoLogin()">Continuar</button>
+          <button class="btn w-full" onclick="guestBrowse()">Seguir como visitante</button>
+        </div>
+        ${actionName ? `<p class="mt-3 text-xs text-habla-500">Requerido para: <strong>${actionName}</strong></p>` : ``}
+      `);
+    }
+    function demoLogin(){
+      state.isAuth = true;
+      state.user = demoUser;
+      if (state.wallet.lukas === 0) {
+        // Welcome credit (demo)
+        creditWallet(2450, "welcome_bonus");
+      }
+      renderAuthArea();
+      toast("Welcome back!");
+      $('#modalRoot').innerHTML = "";
+      router();
+    }
+    function guestBrowse(){
+      $('#modalRoot').innerHTML = "";
+      toast("Browsing as guest. Log in to join tournaments.");
+    }
+    function logout(){
+      state.isAuth = false;
+      state.user = null;
+      renderAuthArea();
+      toast("Logged out");
+      router();
+    }
+
+    // ---------- Wallet / Payments ----------
+    function creditWallet(amount, note){
+      state.wallet.lukas += amount;
+      state.wallet.movements.unshift({ id:uid(), type:"credit", amount, note, ts: nowIso() });
+      $('#lukasBalance').textContent = fmt(state.wallet.lukas);
+    }
+    function debitWallet(amount, note){
+      if (state.wallet.lukas < amount) return false;
+      state.wallet.lukas -= amount;
+      state.wallet.movements.unshift({ id:uid(), type:"debit", amount, note, ts: nowIso() });
+      $('#lukasBalance').textContent = fmt(state.wallet.lukas);
+      return true;
+    }
+    function openTopUp(){
+      const modal = openModal(`
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-bold">Top Up Lukas</h2>
+          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
+        </div>
+        <div class="mt-4 grid grid-cols-3 gap-3">
+          ${[500,1000,2500,5000].map(v => `
+            <button class="btn" onclick="performTopUp(${v})">${fmt(v)} Lukas</button>
+          `).join('')}
+        </div>
+        <div class="mt-4">
+          <input id="customTopUp" class="input" type="number" min="100" step="100" placeholder="Custom amount (min 100)"/>
+          <button class="btn-primary mt-2 w-full" onclick="performTopUp(parseInt(document.getElementById('customTopUp').value||0))">Pay & Credit</button>
+          <p class="text-xs text-habla-500 mt-2">Simulación de checkout (Pagos → Wallet).</p>
+        </div>
+      `);
+      if (!state.isAuth) openLoginModal("Top Up");
+    }
+    function performTopUp(amount){
+      if (!amount || amount<100) { toast("Enter a valid amount", "warn"); return; }
+      if (!state.isAuth) { openLoginModal("Top Up"); return; }
+      creditWallet(amount, "payment_settled");
+      toast(`Credited ${fmt(amount)} Lukas`, "success");
+      $('#modalRoot').innerHTML = "";
+    }
+
+    // ---------- Matches (Torneos) ----------
+    function nextLockCountdown(){
+      const open = state.matches.filter(m => m.status==="open");
+      if (!open.length) return {label:"No active locks", remaining:-1};
+      const nearest = open.reduce((a,b)=> a.kickoff < b.kickoff ? a : b);
+      const diff = nearest.kickoff - Date.now();
+      if (diff <= 0) return {label:"Locking...", remaining:0};
+      const mm = Math.floor(diff/60000);
+      const ss = Math.floor((diff%60000)/1000);
+      return {label:`${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`, remaining:diff};
+    }
+
+    function matchesView(){
+      const tabs = ["open","locked","in_play","finished"];
+      const activeTab = (new URL(location.href)).hash.split("?")[0].split("/")[2] || "open";
+      const countdown = nextLockCountdown();
+
+      const sidebar = `
+        <aside class="hidden lg:block lg:col-span-4">
+          <div class="card p-4">
+            <div class="text-sm text-habla-600">Next Lock</div>
+            <div class="text-3xl font-black mt-1">${countdown.label}</div>
+            <div class="text-xs text-habla-500">Until nearest match locks</div>
+            <button class="btn-primary w-full mt-4" onclick="quickCreateTicket()">Quick Create Ticket</button>
+          </div>
+          <div class="card p-4 mt-4">
+            <div class="font-semibold mb-2">Top Players Today</div>
+            <ul class="text-sm space-y-1">
+              ${state.topPlayersToday.map(p => `<li class="flex justify-between"><span>${p.name}</span><span class="font-semibold">${p.pts} pts</span></li>`).join('')}
+            </ul>
+          </div>
+          <div class="card p-4 mt-4">
+            <div class="font-semibold mb-3">Prize Store Highlights</div>
+            ${state.store.slice(0,2).map(i => `
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <div class="text-sm font-medium">${i.name}</div>
+                  <div class="text-xs text-habla-500">${fmt(i.price)} Lukas</div>
+                </div>
+                <a href="#/store" class="btn">View</a>
+              </div>
+            `).join('')}
+            <a href="#/store" class="btn-primary w-full mt-2">Browse Store</a>
+          </div>
+        </aside>
+      `;
+
+      const list = state.matches
+        .filter(m => activeTab==="open" ? m.status==="open" :
+                      activeTab==="locked" ? m.status==="locked" :
+                      activeTab==="in_play" ? m.status==="in_play" :
+                      m.status==="finished")
+        .map(m => matchCard(m)).join('');
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <section class="lg:col-span-8">
+            <div class="flex items-center justify-between mb-4">
+              <h1 class="text-xl font-bold">Football Matches</h1>
+              <div class="flex gap-2">
+                ${tabs.map(t => `
+                  <a class="btn ${activeTab===t?'btn-primary':''}" href="#/matches/${t}">
+                    ${t==="open"?"Open":t==="locked"?"Locked":t==="in_play"?"In-Play":"Finished"}
+                  </a>
+                `).join('')}
+              </div>
+            </div>
+            <div id="matchesList" class="space-y-4">
+              ${list || `<div class="text-sm text-habla-600">No matches in this tab.</div>`}
+            </div>
+          </section>
+          ${sidebar}
+        </div>
+      `;
+    }
+
+    function matchCard(m){
+      const statusTag = m.status==="open" ? `<span class="tag">Open · Lock in ${Math.max(0, Math.floor((m.kickoff-Date.now())/60000))}m</span>` :
+                        m.status==="locked" ? `<span class="tag">Locked · started</span>` :
+                        m.status==="in_play" ? `<span class="tag">In-Play</span>` :
+                        `<span class="tag">Finished</span>`;
+      const cta =
+        m.status==="open" ? `<button class="btn-primary w-full mt-3" onclick="createTicket('${m.id}')">Create Ticket</button>` :
+        m.status==="locked" ? `<div class="w-full mt-3 btn cursor-default">Ticket Sales Closed</div>` :
+        m.status==="in_play" ? `<a class="btn-primary w-full mt-3" href="#/match/${m.id}">View Live Results</a>` :
+        `<a class="btn-primary w-full mt-3" href="#/match/${m.id}">View Results</a>`;
+
+      return `
+        <article class="card p-4">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              ${statusTag}
+              <h3 class="mt-2 text-lg font-bold">${m.home} <span class="text-habla-400">VS</span> ${m.away}</h3>
+              <div class="text-sm text-habla-600 mt-1">
+                Entry Fee <strong>${m.entryFee} Lukas</strong> · <span class="ml-2">Players: ${m.players}</span>
+                · <span class="ml-2">Prize Pool: ${fmt(m.prizePool)} Lukas</span>
+                ${m.score ? `· <span class="ml-2">Live: ${m.score}</span>` : ``}
+              </div>
+            </div>
+            <div class="text-sm text-habla-600 text-right">
+              <div>${new Date(m.kickoff).toLocaleString()}</div>
+              <a class="link text-xs" href="#/match/${m.id}">Match details</a>
+            </div>
+          </div>
+          ${cta}
+        </article>
+      `;
+    }
+
+    function matchDetailView(matchId){
+      const m = state.matches.find(x=>x.id===matchId);
+      if (!m) return `<div>Match not found</div>`;
+
+      const canSubmit = m.status==="open";
+      const showTransparency = m.status==="in_play" || m.status==="finished";
+      const showLeaderboard = m.status==="finished";
+
+      return `
+        <div class="flex items-center justify-between mb-4">
+          <a href="#/matches" class="link">← Back to Matches</a>
+          <div class="text-sm text-habla-600">${new Date(m.kickoff).toLocaleString()}</div>
+        </div>
+
+        <div class="card p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="tag">${m.status.replace("_"," ")}</div>
+              <h1 class="text-2xl font-black mt-2">${m.home} <span class="text-habla-400">VS</span> ${m.away}</h1>
+              <div class="text-sm text-habla-600 mt-1">Entry Fee <strong>${m.entryFee} Lukas</strong> · Prize Pool ${fmt(m.prizePool)} Lukas</div>
+              ${m.score ? `<div class="mt-1 text-sm">Live: <strong>${m.score}</strong></div>` : ``}
+            </div>
+            <div class="space-x-2">
+              ${canSubmit ? `<button class="btn-primary" onclick="createTicket('${m.id}')">Create Ticket</button>` : ``}
+              ${showTransparency ? `<button class="btn" onclick="openTransparency('${m.id}')">Transparency</button>` : ``}
+              ${showLeaderboard ? `<button class="btn" onclick="openLeaderboard('${m.id}')">Leaderboard</button>` : ``}
+            </div>
+          </div>
+        </div>
+
+        <section class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2">
+            <div class="card p-4">
+              <div class="font-semibold mb-2">Match Timeline (demo)</div>
+              <div class="h-24 flex items-center justify-center text-sm text-habla-500">Events feed placeholder</div>
+            </div>
+            <div class="card p-4 mt-4">
+              <div class="font-semibold mb-2">Your Tickets for this Match</div>
+              ${myTicketsForMatch(matchId)}
+            </div>
+          </div>
+          <aside>
+            <div class="card p-4">
+              <div class="font-semibold mb-2">Rules & Points</div>
+              <ul class="text-sm space-y-1">
+                <li>1X2 (Local/Empate/Visita) — <strong>3 pts</strong></li>
+                <li>Ambos equipos anotan — <strong>2 pts</strong></li>
+                <li>Más de 2.5 goles — <strong>2 pts</strong></li>
+                <li>Habrá tarjeta roja — <strong>6 pts</strong></li>
+                <li>Marcador exacto — <strong>8 pts</strong></li>
+              </ul>
+            </div>
+          </aside>
+        </section>
+      `;
+    }
+
+    function myTicketsForMatch(matchId){
+      const items = state.tickets.filter(t => t.matchId===matchId && state.user && t.userId===state.user.id);
+      if (!state.isAuth) return `<div class="text-sm text-habla-600">Log in to see your tickets.</div>`;
+      if (!items.length) return `<div class="text-sm text-habla-600">You have no tickets yet.</div>`;
+      return `
+        <ul class="divide-y divide-habla-200">
+          ${items.map(t => `
+            <li class="py-3 text-sm">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="font-medium">Ticket #${t.id.slice(0,6)}</div>
+                  <div class="text-habla-600">1X2: ${t.combo.p1x2} · BTTS: ${t.combo.btts} · O2.5: ${t.combo.over25} · Red: ${t.combo.red} · Exact: ${t.combo.exact.h}-${t.combo.exact.a}</div>
+                  <div class="text-xs text-habla-500 mt-1">Submitted ${new Date(t.ts).toLocaleString()}</div>
+                </div>
+                <div class="text-right">
+                  <div class="pill">Fee ${t.fee} Lukas</div>
+                  ${typeof t.points==='number' ? `<div class="mt-1 text-sm">Pts: <strong>${t.points}</strong> · Pos: ${t.position ?? '-'}</div>` : ``}
+                </div>
+              </div>
+            </li>
+          `).join('')}
+        </ul>
+      `;
+    }
+
+    // ---------- Ticket creation (Combinadas) ----------
+    function createTicket(matchId){
+      const m = state.matches.find(x=>x.id===matchId);
+      if (!m) return;
+      if (m.status!=="open") { toast("Ticket sales closed", "warn"); return; }
+      if (!requireAuth("Create Ticket")) return;
+
+      openModal(`
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-bold">Create Ticket · ${m.home} vs ${m.away}</h2>
+          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
+        </div>
+        <form id="ticketForm" class="mt-4 space-y-4">
+          <div>
+            <label class="block text-sm font-semibold mb-1">1) Local / Empate / Visita (3 pts)</label>
+            <div class="grid grid-cols-3 gap-2">
+              ${["Home","Draw","Away"].map(v => `
+                <label class="flex items-center gap-2 border rounded-xl px-3 py-2 cursor-pointer">
+                  <input type="radio" name="p1x2" value="${v}" required/> ${v}
+                </label>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1">2) Ambos anotan (2 pts)</label>
+              <select name="btts" class="input" required>
+                <option value="">Selecciona</option>
+                <option>Yes</option><option>No</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">3) Más de 2.5 goles (2 pts)</label>
+              <select name="over25" class="input" required>
+                <option value="">Selecciona</option>
+                <option>Yes</option><option>No</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">4) ¿Habrá roja? (6 pts)</label>
+              <select name="red" class="input" required>
+                <option value="">Selecciona</option>
+                <option>Yes</option><option>No</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-1">5) Marcador exacto (8 pts)</label>
+            <div class="flex items-center gap-2">
+              <input name="h" type="number" min="0" class="input w-24" placeholder="${m.home}"/>
+              <span class="text-habla-400">-</span>
+              <input name="a" type="number" min="0" class="input w-24" placeholder="${m.away}"/>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between mt-2">
+            <div class="text-sm text-habla-600">Entry Fee: <strong>${m.entryFee} Lukas</strong></div>
+            <button class="btn-primary" onclick="submitTicket(event,'${m.id}')">Submit Ticket</button>
+          </div>
+          <p class="text-xs text-habla-500">Nota: No se pueden editar combinadas. Puedes enviar múltiples combinadas siempre que no sean idénticas.</p>
+        </form>
+      `);
+    }
+
+    function submitTicket(e, matchId){
+      e.preventDefault();
+      const m = state.matches.find(x=>x.id===matchId);
+      const form = document.getElementById('ticketForm');
+      const combo = {
+        p1x2: form.p1x2.value,
+        btts: form.btts.value,
+        over25: form.over25.value,
+        red: form.red.value,
+        exact: {h: parseInt(form.h.value||0), a: parseInt(form.a.value||0)}
+      };
+      const hash = hashCombo(combo);
+
+      // Unicidad por usuario+partido+hash
+      const dup = state.tickets.find(t => t.userId===state.user.id && t.matchId===matchId && t.hash===hash);
+      if (dup) { toast("Ya enviaste una combinada idéntica para este partido.", "warn"); return; }
+
+      if (!debitWallet(m.entryFee, `ticket_fee:${matchId}`)) {
+        toast("Saldo insuficiente", "error"); return;
+      }
+
+      const ticket = {
+        id: uid(), userId: state.user.id, matchId,
+        fee: m.entryFee, combo, hash, ts: nowIso()
+      };
+      state.tickets.unshift(ticket);
+      toast("Ticket enviado ✓", "success");
+      $('#modalRoot').innerHTML = "";
+      router();
+    }
+
+    // ---------- Transparency & Leaderboard ----------
+    function openTransparency(matchId){
+      const items = state.revealed[matchId] || [];
+      openModal(`
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-bold">Transparency — All Tickets</h2>
+          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
+        </div>
+        <div class="mt-3 max-h-[60vh] overflow-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-left text-habla-600">
+              <th class="py-2">User</th><th>1X2</th><th>BTTS</th><th>O2.5</th><th>Red</th><th>Exact</th>
+            </tr></thead>
+            <tbody>
+              ${items.map(r => `
+                <tr class="border-t">
+                  <td class="py-2">${r.user}</td>
+                  <td>${r.combo.p1x2}</td>
+                  <td>${r.combo.btts}</td>
+                  <td>${r.combo.over25}</td>
+                  <td>${r.combo.red}</td>
+                  <td>${r.combo.exact.h}-${r.combo.exact.a}</td>
+                </tr>
+              `).join('') || `<tr><td class="py-3 text-habla-600" colspan="6">Tickets will be revealed after kickoff.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+        <p class="text-xs text-habla-500 mt-2">Publicado automáticamente al iniciar el partido.</p>
+      `);
+    }
+
+    function openLeaderboard(matchId){
+      const lb = state.leaderboards[matchId] || [];
+      openModal(`
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-bold">Leaderboard</h2>
+          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
+        </div>
+        <div class="mt-3">
+          <table class="w-full text-sm">
+            <thead><tr class="text-left text-habla-600">
+              <th class="py-2">#</th><th>User</th><th>Ticket</th><th>Pts</th><th>Prize</th>
+            </tr></thead>
+            <tbody>
+              ${lb.map((r,i)=>`
+                <tr class="border-t">
+                  <td class="py-2">${i+1}</td>
+                  <td>${r.user}</td>
+                  <td>#${r.ticketId.slice(0,6)}</td>
+                  <td><strong>${r.points}</strong></td>
+                  <td>${r.award ? `${fmt(r.award)} Lukas`: '-'}</td>
+                </tr>
+              `).join('') || `<tr><td class="py-3 text-habla-600" colspan="5">Leaderboard available when match finishes.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      `);
+    }
+
+    // ---------- Store ----------
+    function storeView(){
+      return `
+        <div class="flex items-center justify-between mb-4">
+          <h1 class="text-xl font-bold">Prize Store</h1>
+          <div class="text-sm text-habla-600">Redeem with Lukas</div>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${state.store.map(item => storeCard(item)).join('')}
+        </div>
+      `;
+    }
+    function storeCard(item){
+      const allow = state.isAuth && state.wallet.lukas >= item.price && item.stock>0;
+      return `
+        <div class="card p-4 flex flex-col">
+          <div class="h-32 bg-habla-100 rounded-xl flex items-center justify-center text-habla-400">Image</div>
+          <div class="mt-3 font-semibold">${item.name}</div>
+          <div class="text-sm text-habla-600">${fmt(item.price)} Lukas · Stock: ${item.stock}</div>
+          <div class="mt-auto pt-3">
+            <button class="btn-primary w-full" ${allow?'':'disabled'} onclick="redeem('${item.id}')">
+              ${allow? 'Redeem' : !state.isAuth ? 'Log in to Redeem' : item.stock<=0 ? 'Out of Stock' : 'Insufficient Lukas'}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    function redeem(itemId){
+      const item = state.store.find(s=>s.id===itemId);
+      if (!requireAuth("Redeem prize")) return;
+      if (!item) return;
+      if (item.stock<=0) { toast("Out of stock", "warn"); return; }
+      if (!debitWallet(item.price, `reward_redemption:${itemId}`)) { toast("Insufficient Lukas", "warn"); return; }
+      item.stock -= 1;
+      const order = { id: uid(), itemId, name:item.name, ts: nowIso(), type:item.type, status: item.type==='digital'?'completed':'requested' };
+      state.orders.unshift(order);
+      toast("Redemption successful ✓", "success");
+      router();
+    }
+
+    // ---------- Wallet / History ----------
+    function walletView(){
+      const rows = state.wallet.movements.map(m => `
+        <tr class="border-t">
+          <td class="py-2">${new Date(m.ts).toLocaleString()}</td>
+          <td class="text-habla-600">${m.note}</td>
+          <td class="${m.type==='credit'?'text-green-700':'text-red-700'} font-semibold text-right">
+            ${m.type==='credit' ? '+' : '-'}${fmt(m.amount)}
+          </td>
+        </tr>
+      `).join('');
+      return `
+        <div class="card p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm text-habla-600">Current Balance</div>
+              <div class="text-3xl font-black">${fmt(state.wallet.lukas)} Lukas</div>
+            </div>
+            <div class="space-x-2">
+              <button class="btn" onclick="openTopUp()">Top Up</button>
+              <a class="btn" href="#/store">Go to Store</a>
+            </div>
+          </div>
+        </div>
+        <div class="card p-5 mt-6">
+          <div class="font-semibold mb-2">Wallet Movements</div>
+          <table class="w-full text-sm">
+            <thead><tr class="text-left text-habla-600"><th class="py-2">Date</th><th>Note</th><th class="text-right">Amount</th></tr></thead>
+            <tbody>${rows || `<tr><td class="py-3 text-habla-600" colspan="3">No movements yet.</td></tr>`}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function myTicketsView(){
+      const items = state.tickets.filter(t => state.user && t.userId===state.user.id && Date.now()-new Date(t.ts).getTime() < 30*24*60*60*1000);
+      if (!state.isAuth) return `<div class="card p-5">Log in to see your last 30 days of tickets.</div>`;
+      return `
+        <div class="flex items-center justify-between mb-3">
+          <h1 class="text-xl font-bold">My Tickets (Last 30 days)</h1>
+          <a class="btn" href="#/results">Go to Results</a>
+        </div>
+        <div class="card p-4">
+          ${items.length ? `
+          <ul class="divide-y divide-habla-200">
+            ${items.map(t => {
+              const m = state.matches.find(x=>x.id===t.matchId);
+              return `
+              <li class="py-3 text-sm">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="font-medium">${m ? `${m.home} vs ${m.away}` : t.matchId}</div>
+                    <div class="text-habla-600">1X2: ${t.combo.p1x2} · BTTS: ${t.combo.btts} · O2.5: ${t.combo.over25} · Red: ${t.combo.red} · Exact: ${t.combo.exact.h}-${t.combo.exact.a}</div>
+                    <div class="text-xs text-habla-500 mt-1">Submitted ${new Date(t.ts).toLocaleString()}</div>
+                  </div>
+                  <div class="text-right">
+                    <div class="pill">Fee ${t.fee} Lukas</div>
+                    ${typeof t.points==='number' ? `<div class="mt-1 text-sm">Pts: <strong>${t.points}</strong> · Pos: ${t.position ?? '-'}</div>` : ``}
+                  </div>
+                </div>
+              </li>`;
+            }).join('')}
+          </ul>` : `<div class="text-sm text-habla-600">No tickets yet.</div>`}
+        </div>
+      `;
+    }
+
+    function resultsView(){
+      const finished = state.matches.filter(m=>m.status==="finished");
+      return `
+        <div class="flex items-center justify-between mb-3">
+          <h1 class="text-xl font-bold">Results</h1>
+          <a class="btn" href="#/matches">Back to Matches</a>
+        </div>
+        <div class="space-y-4">
+          ${finished.length? finished.map(m => `
+            <div class="card p-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="font-semibold">${m.home} vs ${m.away}</div>
+                  <div class="text-sm text-habla-600">Prize Pool: ${fmt(m.prizePool)} Lukas</div>
+                </div>
+                <button class="btn" onclick="openLeaderboard('${m.id}')">View Leaderboard</button>
+              </div>
+            </div>
+          `).join('') : `<div class="card p-4 text-sm text-habla-600">No finished matches yet.</div>`}
+        </div>
+      `;
+    }
+
+    // ---------- Static pages ----------
+    const staticViews = {
+      "how-to-play": `
+        <div class="prose max-w-none">
+          <h1>How to Play</h1>
+          <ol>
+            <li>Compra <strong>Lukas</strong> (on-ramp) y carga tu billetera.</li>
+            <li>Elige un <strong>partido</strong> con estado <em>Open</em> y crea tu <strong>combinada</strong> con 5 predicciones.</li>
+            <li>Al <em>kickoff</em> se cierran entradas y se <strong>revelan</strong> todas las combinadas.</li>
+            <li>Al finalizar, se <strong>califican</strong> los tickets, se publica el <strong>Leaderboard</strong> y se abonan los <strong>premios</strong> a tu Wallet.</li>
+            <li>Canjea tus Lukas en la <a href="#/store">Tienda</a>.</li>
+          </ol>
+        </div>
+      `,
+      "rules": `
+        <div class="prose max-w-none">
+          <h1>Rules & Scoring</h1>
+          <ul>
+            <li>1X2 = 3 pts</li>
+            <li>Ambos anotan = 2 pts</li>
+            <li>Over 2.5 = 2 pts</li>
+            <li>Tarjeta roja = 6 pts</li>
+            <li>Marcador exacto = 8 pts</li>
+          </ul>
+          <p>Desempates: mayor acierto en marcador exacto; luego timestamp más temprano; si persiste, prorrateo del premio.</p>
+        </div>
+      `,
+      "faq": `<div class="prose max-w-none"><h1>FAQ</h1><p>Contenido de preguntas frecuentes (placeholder).</p></div>`,
+      "terms": `<div class="prose max-w-none"><h1>Terms of Service</h1><p>Placeholder.</p></div>`,
+      "privacy": `<div class="prose max-w-none"><h1>Privacy Policy</h1><p>Placeholder.</p></div>`,
+      "responsible": `<div class="prose max-w-none"><h1>Responsible Gaming</h1><p>Juega responsablemente.</p></div>`,
+      "help": `<div class="prose max-w-none"><h1>Help Center</h1><p>Escríbenos a soporte@habla.example.</p></div>`,
+      "contact": `<div class="prose max-w-none"><h1>Contact</h1><p>Formulario de contacto (placeholder).</p></div>`,
+      "report": `<div class="prose max-w-none"><h1>Report an Issue</h1><p>Describe el problema (placeholder).</p></div>`,
+      "profile": `<div class="prose max-w-none"><h1>My Profile</h1><p>Alias, avatar y preferencias (placeholder). Visible solo con login.</p></div>`,
+      "history": `<div class="prose max-w-none"><h1>History</h1><p>Usa "My Tickets" y "Wallet" para ver tu historial de 30 días.</p></div>`,
+      "transparency": `<div class="prose max-w-none"><h1>Transparency</h1><p>Las combinadas se publican tras kickoff. Ver "Transparency" dentro del detalle del partido.</p></div>`
+    };
+
+    // ---------- Router ----------
+    function router(){
+      const app = document.getElementById('app');
+      const [_, route, arg] = (location.hash || "#/matches").split("/");
+      let html = "";
+
+      switch(route){
+        case "matches": html = matchesView(); break;
+        case "match": html = matchDetailView(arg); break;
+        case "tickets": html = myTicketsView(); break;
+        case "results": html = resultsView(); break;
+        case "store": html = storeView(); break;
+        case "wallet": html = walletView(); break;
+        default:
+          html = staticViews[route] || matchesView();
+      }
+
+      app.innerHTML = html;
+      app.classList.remove('fade-enter'); // reset animation
+      void app.offsetWidth;               // reflow
+      app.classList.add('fade-enter','fade-enter-active');
+
+      renderAuthArea();
+    }
+    window.addEventListener('hashchange', router);
+
+    // ---------- Quick actions ----------
+    function quickCreateTicket(){
+      // open modal preselect on nearest open match
+      const m = state.matches.find(x=>x.status==="open");
+      if (!m) { toast("No open matches right now", "warn"); return; }
+      createTicket(m.id);
+    }
+
+    // ---------- Init ----------
+    router();
+    renderAuthArea();
+
+    // Optional: small timer to update countdown label (demo)
+    setInterval(() => {
+      if (location.hash.startsWith("#/matches")) router();
+    }, 1000);
+
+  </script>
+</body>
+</html>
