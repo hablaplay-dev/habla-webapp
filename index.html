@@ -193,11 +193,42 @@
     };
 
     // ---------- Fake Data ----------
+    const seedTickets = [
+      {
+        userId: "guest_alice",
+        userName: "Alice",
+        matchId: "m3",
+        fee: 25,
+        combo: { p1x2: "Home", btts: "Yes", over25: "Yes", red: "No", exact: { h: 2, a: 1 } },
+        ts: nowIso()
+      },
+      {
+        userId: "guest_bob",
+        userName: "Bob",
+        matchId: "m3",
+        fee: 25,
+        combo: { p1x2: "Draw", btts: "No", over25: "No", red: "No", exact: { h: 1, a: 1 } },
+        ts: nowIso()
+      },
+      {
+        userId: "guest_carla",
+        userName: "Carla",
+        matchId: "m2",
+        fee: 30,
+        combo: { p1x2: "Home", btts: "Yes", over25: "Yes", red: "Yes", exact: { h: 2, a: 0 } },
+        ts: nowIso()
+      }
+    ];
+
     const state = {
       isAuth: false,
       user: null,
       wallet: { lukas: 0, movements: [] }, // movements: {id, type:credit|debit, amount, note, ts}
-      tickets: [], // {id, userId, matchId, fee, combo, hash, ts, points, position}
+      tickets: seedTickets.map(seed => ({
+        ...seed,
+        id: uid(),
+        hash: hashCombo(seed.combo)
+      })), // {id, userId, matchId, fee, combo, hash, ts, points, position}
       orders: [],  // store redemptions
       notifications: [],
       // Matches / Tournaments
@@ -238,19 +269,39 @@
         {name:"FootballFan", pts:16},
         {name:"PredictoPro", pts:15}
       ],
-      revealed: { // transparency data after kickoff
-        m3: [
-          {user:"Alice", combo:{p1x2:"Home", btts:"Yes", over25:"Yes", red:"No", exact:{h:2,a:1}}},
-          {user:"Bob",   combo:{p1x2:"Draw", btts:"No",  over25:"No",  red:"No", exact:{h:0,a:0}}},
-        ]
-      },
+      transparency: {},
+      revealed: {},
       leaderboards: {
         // filled when finished (demo stub)
-      }
+      },
+      matchFacts: {},
+      settlements: {},
+      events: [],
+      riskFlags: []
     };
+
+    state.tickets.forEach(ticket => {
+      if (!state.transparency[ticket.matchId]) state.transparency[ticket.matchId] = [];
+      state.transparency[ticket.matchId].push({ user: ticket.userName || ticket.userId, combo: ticket.combo });
+    });
+    state.matches.forEach(match => {
+      if (match.status === "in_play" || match.status === "finished") {
+        state.revealed[match.id] = [...(state.transparency[match.id] || [])];
+      }
+    });
 
     // Seed demo user for quick testing (not logged by default)
     const demoUser = { id:"u1", name:"Gustavo", email:"gustavo@example.com" };
+
+    function logEvent(type, detail={}){
+      state.events.unshift({ id: uid(), type, detail, ts: nowIso() });
+    }
+
+    function recordRisk(detail){
+      const flag = { id: uid(), ...detail, ts: nowIso() };
+      state.riskFlags.unshift(flag);
+      logEvent("Risk.Flagged", flag);
+    }
 
     // ---------- Auth ----------
     function renderAuthArea() {
@@ -308,6 +359,7 @@
       }
       renderAuthArea();
       toast("Welcome back!");
+      logEvent("Auth.Login", { userId: state.user.id, email: state.user.email });
       $('#modalRoot').innerHTML = "";
       router();
     }
@@ -320,6 +372,7 @@
       state.user = null;
       renderAuthArea();
       toast("Logged out");
+      logEvent("Auth.Logout", {});
       router();
     }
 
@@ -328,12 +381,14 @@
       state.wallet.lukas += amount;
       state.wallet.movements.unshift({ id:uid(), type:"credit", amount, note, ts: nowIso() });
       $('#lukasBalance').textContent = fmt(state.wallet.lukas);
+      logEvent("Wallet.CreditPosted", { amount, note });
     }
     function debitWallet(amount, note){
       if (state.wallet.lukas < amount) return false;
       state.wallet.lukas -= amount;
       state.wallet.movements.unshift({ id:uid(), type:"debit", amount, note, ts: nowIso() });
       $('#lukasBalance').textContent = fmt(state.wallet.lukas);
+      logEvent("Wallet.DebitPosted", { amount, note });
       return true;
     }
     function openTopUp(){
@@ -358,7 +413,12 @@
     function performTopUp(amount){
       if (!amount || amount<100) { toast("Enter a valid amount", "warn"); return; }
       if (!state.isAuth) { openLoginModal("Top Up"); return; }
+      logEvent("Payment.Initiated", { amount });
       creditWallet(amount, "payment_settled");
+      logEvent("Payment.Settled", { amount });
+      if (amount >= 10000) {
+        recordRisk({ service: "Pagos", reason: "High top up velocity", amount });
+      }
       toast(`Credited ${fmt(amount)} Lukas`, "success");
       $('#modalRoot').innerHTML = "";
     }
@@ -479,6 +539,18 @@
       const canSubmit = m.status==="open";
       const showTransparency = m.status==="in_play" || m.status==="finished";
       const showLeaderboard = m.status==="finished";
+      const operationsCard = `
+            <div class="card p-4 mt-4">
+              <div class="font-semibold mb-2">Operaciones del flujo</div>
+              <div class="flex flex-wrap gap-2">
+                ${m.status==="open" ? `<button class="btn" onclick="lockMatch('${m.id}')">Lock Sales</button>` : ``}
+                ${m.status==="locked" ? `<button class="btn" onclick="startMatch('${m.id}')">Start Match</button>` : ``}
+                ${m.status==="in_play" ? `<button class="btn" onclick="openFinalizeMatch('${m.id}')">Finalize Match</button>` : ``}
+                ${m.status==="finished" && !state.settlements[m.id] ? `<button class="btn" onclick="settlePayouts('${m.id}')">Settle Payouts</button>` : ``}
+              </div>
+              <p class="text-xs text-habla-500 mt-3">Simula Torneos, Oráculos, Scoring, Leaderboard y Liquidación paso a paso.</p>
+              ${state.settlements[m.id] ? `<p class="text-xs text-green-600 mt-2">Payouts posted en Wallet.</p>` : ``}
+            </div>`;
 
       return `
         <div class="flex items-center justify-between mb-4">
@@ -512,6 +584,7 @@
               <div class="font-semibold mb-2">Your Tickets for this Match</div>
               ${myTicketsForMatch(matchId)}
             </div>
+            ${operationsCard}
           </div>
           <aside>
             <div class="card p-4">
@@ -642,10 +715,16 @@
       }
 
       const ticket = {
-        id: uid(), userId: state.user.id, matchId,
+        id: uid(), userId: state.user.id, userName: state.user.name, matchId,
         fee: m.entryFee, combo, hash, ts: nowIso()
       };
       state.tickets.unshift(ticket);
+      if (!state.transparency[matchId]) state.transparency[matchId] = [];
+      state.transparency[matchId].push({ user: ticket.userName, combo });
+      if (m.status === "in_play" || m.status === "finished") {
+        state.revealed[matchId] = [...state.transparency[matchId]];
+      }
+      logEvent("Ticket.Submitted", { matchId, ticketId: ticket.id });
       toast("Ticket enviado ✓", "success");
       $('#modalRoot').innerHTML = "";
       router();
@@ -653,7 +732,10 @@
 
     // ---------- Transparency & Leaderboard ----------
     function openTransparency(matchId){
-      const items = state.revealed[matchId] || [];
+      const match = state.matches.find(x=>x.id===matchId);
+      const appended = state.transparency[matchId] || [];
+      const revealed = state.revealed[matchId] || [];
+      const isRevealed = match && (match.status === "in_play" || match.status === "finished");
       openModal(`
         <div class="flex items-start justify-between">
           <h2 class="text-lg font-bold">Transparency — All Tickets</h2>
@@ -665,7 +747,7 @@
               <th class="py-2">User</th><th>1X2</th><th>BTTS</th><th>O2.5</th><th>Red</th><th>Exact</th>
             </tr></thead>
             <tbody>
-              ${items.map(r => `
+              ${(isRevealed ? revealed : []).map(r => `
                 <tr class="border-t">
                   <td class="py-2">${r.user}</td>
                   <td>${r.combo.p1x2}</td>
@@ -678,7 +760,7 @@
             </tbody>
           </table>
         </div>
-        <p class="text-xs text-habla-500 mt-2">Publicado automáticamente al iniciar el partido.</p>
+        <p class="text-xs text-habla-500 mt-2">${isRevealed ? `Publicado automáticamente al iniciar el partido.` : `Tickets en cola: ${appended.length}. Se revelan al kickoff.`}</p>
       `);
     }
 
@@ -710,6 +792,162 @@
       `);
     }
 
+    function lockMatch(matchId){
+      const match = state.matches.find(x=>x.id===matchId);
+      if (!match || match.status !== "open") { toast("Match is not open", "warn"); return; }
+      match.status = "locked";
+      logEvent("Match.StateChanged", { matchId, status: "locked" });
+      toast("Ventas bloqueadas — Match locked", "success");
+      router();
+    }
+
+    function startMatch(matchId){
+      const match = state.matches.find(x=>x.id===matchId);
+      if (!match || match.status !== "locked") { toast("Match must be locked first", "warn"); return; }
+      match.status = "in_play";
+      logEvent("Match.StateChanged", { matchId, status: "en_juego" });
+      revealTickets(matchId);
+      toast("Match en juego — Tickets revelados", "success");
+      router();
+    }
+
+    function revealTickets(matchId){
+      const items = state.transparency[matchId] || [];
+      state.revealed[matchId] = [...items];
+      logEvent("Transparency.Revealed", { matchId, total: items.length });
+    }
+
+    function openFinalizeMatch(matchId){
+      const match = state.matches.find(x=>x.id===matchId);
+      if (!match) return;
+      if (match.status !== "in_play") { toast("Match must be in play", "warn"); return; }
+      openModal(`
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-bold">Finalizar partido</h2>
+          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
+        </div>
+        <form id="finalizeForm" class="mt-4 space-y-4" onsubmit="finalizeMatch(event, '${matchId}')">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold mb-1">${match.home} goles</label>
+              <input class="input" type="number" name="homeScore" min="0" required />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-1">${match.away} goles</label>
+              <input class="input" type="number" name="awayScore" min="0" required />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1">¿Hubo tarjeta roja?</label>
+            <select class="input" name="redCard" required>
+              <option value="">Selecciona</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </div>
+          <button class="btn-primary">Publicar hechos finales</button>
+        </form>
+        <p class="text-xs text-habla-500 mt-3">Simula la ingesta de Oráculos, dispara Scoring y Leaderboard.</p>
+      `);
+    }
+
+    function finalizeMatch(event, matchId){
+      event.preventDefault();
+      const form = document.getElementById('finalizeForm');
+      const home = parseInt(form.homeScore.value || 0, 10);
+      const away = parseInt(form.awayScore.value || 0, 10);
+      const red = form.redCard.value;
+      const facts = {
+        home,
+        away,
+        p1x2: home === away ? "Draw" : home > away ? "Home" : "Away",
+        btts: home > 0 && away > 0 ? "Yes" : "No",
+        over25: home + away > 2 ? "Yes" : "No",
+        red
+      };
+      applyMatchFacts(matchId, facts);
+      $('#modalRoot').innerHTML = "";
+      toast("Match finalized", "success");
+    }
+
+    function applyMatchFacts(matchId, facts){
+      const match = state.matches.find(x=>x.id===matchId);
+      if (!match) return;
+      match.status = "finished";
+      match.score = `${facts.home}-${facts.away} FT`;
+      state.matchFacts[matchId] = facts;
+      logEvent("Match.StateChanged", { matchId, status: "terminado" });
+      logEvent("MatchFacts.Finalized", { matchId, score: match.score, red: facts.red });
+      runScoring(matchId);
+      router();
+    }
+
+    function runScoring(matchId){
+      const facts = state.matchFacts[matchId];
+      if (!facts) { toast("Load final facts first", "warn"); return; }
+      const tickets = state.tickets.filter(t => t.matchId === matchId);
+      tickets.forEach(ticket => {
+        let points = 0;
+        if (ticket.combo.p1x2 === facts.p1x2) points += 3;
+        if (ticket.combo.btts === facts.btts) points += 2;
+        if (ticket.combo.over25 === facts.over25) points += 2;
+        if (ticket.combo.red === facts.red) points += 6;
+        if (ticket.combo.exact && ticket.combo.exact.h === facts.home && ticket.combo.exact.a === facts.away) points += 8;
+        ticket.points = points;
+      });
+      logEvent("Scoring.Completed", { matchId, tickets: tickets.length });
+      finalizeLeaderboard(matchId);
+    }
+
+    function finalizeLeaderboard(matchId){
+      const tickets = state.tickets.filter(t => t.matchId === matchId);
+      const sorted = tickets.slice().sort((a,b) => {
+        const pointsDiff = (b.points || 0) - (a.points || 0);
+        if (pointsDiff !== 0) return pointsDiff;
+        return new Date(a.ts).getTime() - new Date(b.ts).getTime();
+      });
+      const leaderboard = sorted.map((ticket, idx) => {
+        ticket.position = idx + 1;
+        return {
+          ticketId: ticket.id,
+          user: ticket.userName || ticket.userId,
+          points: ticket.points || 0,
+          award: ticket.award || 0
+        };
+      });
+      state.leaderboards[matchId] = leaderboard;
+      logEvent("Leaderboard.Finalized", { matchId, entries: leaderboard.length });
+    }
+
+    function settlePayouts(matchId){
+      if (state.settlements[matchId]) { toast("Payouts already settled", "warn"); return; }
+      const match = state.matches.find(x=>x.id===matchId);
+      const leaderboard = state.leaderboards[matchId] || [];
+      if (!match || !leaderboard.length) { toast("Leaderboard missing", "warn"); return; }
+      const distribution = [0.6, 0.3, 0.1];
+      const winners = leaderboard.slice(0, 3).map((entry, idx) => ({
+        ...entry,
+        award: Math.round(match.prizePool * (distribution[idx] || 0))
+      }));
+      winners.forEach(w => {
+        const ticket = state.tickets.find(t => t.id === w.ticketId);
+        if (ticket) {
+          ticket.award = w.award;
+        }
+        const lbEntry = leaderboard.find(e => e.ticketId === w.ticketId);
+        if (lbEntry) lbEntry.award = w.award;
+        if (ticket && state.user && ticket.userId === state.user.id) {
+          creditWallet(w.award, `payout:${matchId}:${ticket.id}`);
+        }
+      });
+      state.leaderboards[matchId] = leaderboard;
+      state.settlements[matchId] = true;
+      logEvent("Payouts.Posted", { matchId, winners });
+      toast("Payouts settled", "success");
+      $('#modalRoot').innerHTML = "";
+      router();
+    }
+
     // ---------- Store ----------
     function storeView(){
       return `
@@ -717,8 +955,39 @@
           <h1 class="text-xl font-bold">Prize Store</h1>
           <div class="text-sm text-habla-600">Redeem with Lukas</div>
         </div>
+        <details class="card p-4 mb-4">
+          <summary class="font-semibold cursor-pointer">Prize operations</summary>
+          <p class="text-xs text-habla-500 mt-2">Gestiona redenciones y sigue la trazabilidad sin salir de la tienda.</p>
+          <div class="flex flex-wrap gap-2 mt-3">
+            <button class="btn" onclick="openFulfillmentQueue()">Revisar cola</button>
+            <button class="btn" onclick="openRiskCenter()">Alertas de riesgo</button>
+            <button class="btn" onclick="openAuditLog()">Ver bitácora</button>
+          </div>
+        </details>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           ${state.store.map(item => storeCard(item)).join('')}
+        </div>
+        <div class="card p-4 mt-6">
+          <div class="flex items-center justify-between">
+            <div class="font-semibold">Fulfillment Queue</div>
+            <div class="text-xs text-habla-500">Despacha premios físicos y digitales</div>
+          </div>
+          <table class="w-full text-sm mt-3">
+            <thead><tr class="text-left text-habla-600"><th class="py-2">Orden</th><th>Premio</th><th>Tipo</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+              ${state.orders.length ? state.orders.map(order => `
+                <tr class="border-t">
+                  <td class="py-2">#${order.id.slice(0,6)}</td>
+                  <td>${order.name}</td>
+                  <td class="capitalize">${order.type}</td>
+                  <td>${order.status.replace('_',' ')}</td>
+                  <td class="text-right">
+                    ${order.status === 'requested' ? `<button class="btn" onclick="fulfillOrder('${order.id}')">Mark Fulfilled</button>` : `<span class="text-xs text-habla-500">${order.status === 'completed' ? 'Delivered' : '—'}</span>`}
+                  </td>
+                </tr>
+              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="5">No redemptions yet.</td></tr>`}
+            </tbody>
+          </table>
         </div>
       `;
     }
@@ -744,10 +1013,117 @@
       if (item.stock<=0) { toast("Out of stock", "warn"); return; }
       if (!debitWallet(item.price, `reward_redemption:${itemId}`)) { toast("Insufficient Lukas", "warn"); return; }
       item.stock -= 1;
-      const order = { id: uid(), itemId, name:item.name, ts: nowIso(), type:item.type, status: item.type==='digital'?'completed':'requested' };
+      const order = { id: uid(), itemId, name:item.name, price:item.price, ts: nowIso(), type:item.type, status: item.type==='digital'?'completed':'requested' };
       state.orders.unshift(order);
+      logEvent("Reward.Redeemed", { orderId: order.id, itemId });
+      if (order.type === 'physical' && order.price >= 30000) {
+        recordRisk({ service: "Tienda", reason: "High value redemption", orderId: order.id, itemId, amount: order.price });
+      }
       toast("Redemption successful ✓", "success");
       router();
+    }
+
+    function fulfillOrder(orderId){
+      const order = state.orders.find(o => o.id === orderId);
+      if (!order) { toast("Order not found", "warn"); return; }
+      order.status = "completed";
+      logEvent("Fulfillment.Completed", { orderId });
+      toast("Order fulfilled", "success");
+      router();
+    }
+
+    function openFulfillmentQueue(){
+      openModal(`
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-bold">Fulfillment Queue</h2>
+          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
+        </div>
+        <div class="mt-3">
+          <table class="w-full text-sm">
+            <thead><tr class="text-left text-habla-600"><th class="py-2">Orden</th><th>Premio</th><th>Tipo</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+              ${state.orders.length ? state.orders.map(order => `
+                <tr class="border-t">
+                  <td class="py-2">#${order.id.slice(0,6)}</td>
+                  <td>${order.name}</td>
+                  <td class="capitalize">${order.type}</td>
+                  <td>${order.status}</td>
+                  <td class="text-right">
+                    ${order.status === 'requested' ? `<button class="btn" onclick=\"fulfillOrder('${order.id}')\">Mark Fulfilled</button>` : `<span class="text-xs text-habla-500">Completed</span>`}
+                  </td>
+                </tr>
+              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="5">No redemptions pending.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      `);
+    }
+
+    function openSettlementHelper(){
+      const targets = state.matches.filter(m => m.status === "finished");
+      openModal(`
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-bold">Liquidación de premios</h2>
+          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
+        </div>
+        <div class="mt-3 space-y-2 text-sm">
+          ${targets.length ? targets.map(m => `
+            <div class="card p-3 flex items-center justify-between">
+              <div>
+                <div class="font-semibold">${m.home} vs ${m.away}</div>
+                <div class="text-xs text-habla-500">Prize Pool: ${fmt(m.prizePool)} Lukas</div>
+              </div>
+              <button class="btn" onclick="settlePayouts('${m.id}')">Settle</button>
+            </div>
+          `).join('') : `<div class="text-habla-600">No finished matches awaiting payouts.</div>`}
+        </div>
+      `);
+    }
+
+    function openRiskCenter(){
+      openModal(`
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-bold">Risk Flags</h2>
+          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
+        </div>
+        <div class="mt-3 max-h-[60vh] overflow-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-left text-habla-600"><th class="py-2">Fecha</th><th>Servicio</th><th>Detalle</th></tr></thead>
+            <tbody>
+              ${state.riskFlags.length ? state.riskFlags.map(flag => `
+                <tr class="border-t">
+                  <td class="py-2">${new Date(flag.ts).toLocaleString()}</td>
+                  <td>${flag.service}</td>
+                  <td class="text-habla-600">${flag.reason || ''} ${flag.amount ? `(${fmt(flag.amount)} Lukas)` : ''}</td>
+                </tr>
+              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="3">No risk alerts.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      `);
+    }
+
+    function openAuditLog(){
+      openModal(`
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-bold">Event Log</h2>
+          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
+        </div>
+        <div class="mt-3 max-h-[60vh] overflow-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-left text-habla-600"><th class="py-2">Fecha</th><th>Evento</th><th>Detalle</th></tr></thead>
+            <tbody>
+              ${state.events.length ? state.events.map(evt => `
+                <tr class="border-t">
+                  <td class="py-2">${new Date(evt.ts).toLocaleString()}</td>
+                  <td>${evt.type}</td>
+                  <td class="text-habla-600">${JSON.stringify(evt.detail)}</td>
+                </tr>
+              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="3">No events yet.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+      `);
     }
 
     // ---------- Wallet / History ----------
@@ -836,6 +1212,19 @@
               </div>
             </div>
           `).join('') : `<div class="card p-4 text-sm text-habla-600">No finished matches yet.</div>`}
+        </div>
+        <div class="card p-4 mt-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-semibold">Post-match tools</div>
+              <p class="text-xs text-habla-500">Liquida premios y revisa controles operativos cuando cierre un partido.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button class="btn" onclick="openSettlementHelper()">Liquidar premios</button>
+              <button class="btn" onclick="openRiskCenter()">Alertas de riesgo</button>
+              <button class="btn" onclick="openAuditLog()">Bitácora</button>
+            </div>
+          </div>
         </div>
       `;
     }
