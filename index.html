@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Habla! — Football Predictions</title>
+  <title>Habla! — Predicciones de fútbol</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     // Tailwind config (optional fine-tune)
@@ -52,13 +52,13 @@
           Habla!
         </a>
         <nav class="hidden md:flex items-center gap-6 text-sm">
-          <a href="#/matches" class="link">Matches</a>
-          <a href="#/tickets" class="link">My Tickets</a>
-          <a href="#/results" class="link">Results</a>
-          <a href="#/store" class="link">Store</a>
-          <a href="#/wallet" class="link">Wallet</a>
-          <a href="#/how-to-play" class="link">How to Play</a>
-          <a href="#/faq" class="link">FAQ</a>
+          <a href="#/matches" class="link">Partidos</a>
+          <a href="#/tickets" class="link">Mis combinadas</a>
+          <a href="#/results" class="link">Resultados</a>
+          <a href="#/store" class="link">Tienda</a>
+          <a href="#/wallet" class="link">Billetera</a>
+          <a href="#/how-to-play" class="link">Cómo jugar</a>
+          <a href="#/faq" class="link">Preguntas frecuentes</a>
         </nav>
       </div>
 
@@ -66,7 +66,7 @@
         <div id="balancePill" class="pill hidden">
           <span id="lukasBalance">0</span> Lukas
         </div>
-        <button id="topUpBtn" class="btn" onclick="openTopUp()" title="Top up Lukas">Top Up</button>
+        <button id="topUpBtn" class="btn" onclick="openTopUp()" title="Recargar Lukas">Recargar</button>
         <div id="authArea" class="ml-2">
           <!-- Populated by JS: Login / User menu -->
         </div>
@@ -76,13 +76,13 @@
     <!-- Mobile menu -->
     <div id="mobileMenu" class="hidden md:hidden border-t border-habla-200 bg-white">
       <nav class="px-4 py-3 flex flex-col gap-2 text-sm">
-        <a href="#/matches" class="link">Matches</a>
-        <a href="#/tickets" class="link">My Tickets</a>
-        <a href="#/results" class="link">Results</a>
-        <a href="#/store" class="link">Store</a>
-        <a href="#/wallet" class="link">Wallet</a>
-        <a href="#/how-to-play" class="link">How to Play</a>
-        <a href="#/faq" class="link">FAQ</a>
+        <a href="#/matches" class="link">Partidos</a>
+        <a href="#/tickets" class="link">Mis combinadas</a>
+        <a href="#/results" class="link">Resultados</a>
+        <a href="#/store" class="link">Tienda</a>
+        <a href="#/wallet" class="link">Billetera</a>
+        <a href="#/how-to-play" class="link">Cómo jugar</a>
+        <a href="#/faq" class="link">Preguntas frecuentes</a>
       </nav>
     </div>
   </header>
@@ -99,41 +99,41 @@
   <footer class="border-t border-habla-200 bg-white">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
       <div>
-        <div class="font-semibold mb-2">Game</div>
+        <div class="font-semibold mb-2">Juego</div>
         <ul class="space-y-1">
-          <li><a href="#/how-to-play" class="link">How to Play</a></li>
-          <li><a href="#/rules" class="link">Rules & Scoring</a></li>
-          <li><a href="#/transparency" class="link">Transparency</a></li>
-          <li><a href="#/faq" class="link">FAQ</a></li>
+          <li><a href="#/how-to-play" class="link">Cómo jugar</a></li>
+          <li><a href="#/rules" class="link">Reglas y puntajes</a></li>
+          <li><a href="#/transparency" class="link">Transparencia</a></li>
+          <li><a href="#/faq" class="link">Preguntas frecuentes</a></li>
         </ul>
       </div>
       <div>
-        <div class="font-semibold mb-2">Account</div>
+        <div class="font-semibold mb-2">Cuenta</div>
         <ul class="space-y-1">
-          <li><a href="#/profile" class="link">My Profile</a></li>
-          <li><a href="#/wallet" class="link">Wallet</a></li>
-          <li><a href="#/history" class="link">Transaction History</a></li>
+          <li><a href="#/profile" class="link">Mi perfil</a></li>
+          <li><a href="#/wallet" class="link">Billetera</a></li>
+          <li><a href="#/history" class="link">Historial de movimientos</a></li>
         </ul>
       </div>
       <div>
-        <div class="font-semibold mb-2">Support</div>
+        <div class="font-semibold mb-2">Soporte</div>
         <ul class="space-y-1">
-          <li><a href="#/help" class="link">Help Center</a></li>
-          <li><a href="#/contact" class="link">Contact Us</a></li>
-          <li><a href="#/report" class="link">Report Issue</a></li>
+          <li><a href="#/help" class="link">Centro de ayuda</a></li>
+          <li><a href="#/contact" class="link">Contáctanos</a></li>
+          <li><a href="#/report" class="link">Reportar problema</a></li>
         </ul>
       </div>
       <div>
         <div class="font-semibold mb-2">Legal</div>
         <ul class="space-y-1">
-          <li><a href="#/terms" class="link">Terms of Service</a></li>
-          <li><a href="#/privacy" class="link">Privacy Policy</a></li>
-          <li><a href="#/responsible" class="link">Responsible Gaming</a></li>
+          <li><a href="#/terms" class="link">Términos del servicio</a></li>
+          <li><a href="#/privacy" class="link">Política de privacidad</a></li>
+          <li><a href="#/responsible" class="link">Juego responsable</a></li>
         </ul>
       </div>
     </div>
     <div class="text-center text-xs text-habla-500 pb-8">
-      © Habla! 2025 · All rights reserved
+      © Habla! 2025 · Todos los derechos reservados
     </div>
   </footer>
 
@@ -151,12 +151,35 @@
     // ---------- Utilities ----------
     const $ = (sel, el=document) => el.querySelector(sel);
     const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
-    const fmt = (n) => new Intl.NumberFormat('en-US').format(n);
+    const fmt = (n) => new Intl.NumberFormat('es-ES').format(n);
     const nowIso = () => new Date().toISOString();
     const uid = () => Math.random().toString(36).slice(2,10);
     const hashCombo = combo => JSON.stringify([
       combo.p1x2, combo.btts, combo.over25, combo.red, `${combo.exact.h}-${combo.exact.a}`
     ]);
+    const statusLabel = (status) => ({
+      open: "Abierto",
+      locked: "Bloqueado",
+      in_play: "En juego",
+      finished: "Finalizado"
+    }[status] || status);
+    const yesNoLabel = (value) => ({
+      Yes: "Sí",
+      No: "No"
+    }[value] || value);
+    const p1x2Label = (value) => ({
+      Home: "Local",
+      Draw: "Empate",
+      Away: "Visita"
+    }[value] || value);
+    const storeTypeLabel = (value) => ({
+      physical: "físico",
+      digital: "digital"
+    }[value] || value);
+    const orderStatusLabel = (value) => ({
+      requested: "pendiente",
+      completed: "completado"
+    }[value] || value);
 
     const toast = (msg, type="info") => {
       const colors = {
@@ -177,14 +200,14 @@
       const wrap = document.createElement('div');
       wrap.className = "fixed inset-0 z-50 flex items-center justify-center";
       wrap.innerHTML = `
-        <div class="absolute inset-0 bg-black/30" onclick="this.parentElement.remove()"></div>
-        <div class="relative card w-[92vw] max-w-2xl p-5">${html}</div>
+        <div class="absolute inset-0 bg-black/60" onclick="this.parentElement.remove()"></div>
+        <div class="relative w-[92vw] max-w-2xl p-5 rounded-2xl border border-habla-200 bg-white shadow-xl">${html}</div>
       `;
       root.appendChild(wrap);
       return wrap;
     };
 
-    const requireAuth = (actionName="this action") => {
+    const requireAuth = (actionName="esta acción") => {
       if (!state.isAuth) {
         openLoginModal(actionName);
         return false;
@@ -259,9 +282,9 @@
         }
       ],
       store: [
-        {id:"s1", name:"Football Jersey", price: 5000, type:"physical", stock: 5},
-        {id:"s2", name:"Match Tickets (Gift)", price: 1200, type:"digital", stock: 25},
-        {id:"s3", name:"$25 Gift Card", price: 2500, type:"digital", stock: 50},
+        {id:"s1", name:"Camiseta de fútbol", price: 5000, type:"physical", stock: 5},
+        {id:"s2", name:"Entradas al partido (regalo)", price: 1200, type:"digital", stock: 25},
+        {id:"s3", name:"Tarjeta de regalo de $25", price: 2500, type:"digital", stock: 50},
         {id:"s4", name:"PlayStation 5", price: 45000, type:"physical", stock: 1},
       ],
       topPlayersToday: [
@@ -307,18 +330,18 @@
     function renderAuthArea() {
       const c = document.getElementById('authArea');
       if (!state.isAuth) {
-        c.innerHTML = `<button class="btn" onclick="openLoginModal()">Log in / Sign up</button>`;
+        c.innerHTML = `<button class="btn" onclick="openLoginModal()">Iniciar sesión / Registrarse</button>`;
         $('#balancePill').classList.add('hidden');
         return;
       }
       c.innerHTML = `
         <div class="relative inline-block">
-          <button class="btn" onclick="toggleUserMenu()">Hello, ${state.user.name} ▾</button>
+          <button class="btn" onclick="toggleUserMenu()">Hola, ${state.user.name} ▾</button>
           <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 card p-2 text-sm">
-            <a href="#/profile" class="block px-3 py-2 rounded-md hover:bg-habla-100">Profile</a>
-            <a href="#/history" class="block px-3 py-2 rounded-md hover:bg-habla-100">History</a>
-            <a href="#/wallet" class="block px-3 py-2 rounded-md hover:bg-habla-100">Wallet</a>
-            <button class="w-full text-left px-3 py-2 rounded-md hover:bg-habla-100" onclick="logout()">Log out</button>
+            <a href="#/profile" class="block px-3 py-2 rounded-md hover:bg-habla-100">Perfil</a>
+            <a href="#/history" class="block px-3 py-2 rounded-md hover:bg-habla-100">Historial</a>
+            <a href="#/wallet" class="block px-3 py-2 rounded-md hover:bg-habla-100">Billetera</a>
+            <button class="w-full text-left px-3 py-2 rounded-md hover:bg-habla-100" onclick="logout()">Cerrar sesión</button>
           </div>
         </div>
       `;
@@ -338,12 +361,12 @@
     function openLoginModal(actionName){
       const modal = openModal(`
         <div class="flex items-start justify-between">
-          <h2 class="text-lg font-bold">Log in / Sign up</h2>
+          <h2 class="text-lg font-bold">Iniciar sesión / Registrarse</h2>
           <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
         </div>
         <p class="mt-2 text-sm text-habla-600">Inicia sesión para participar en torneos, canjear premios y usar tu billetera.</p>
         <div class="mt-4 space-y-3">
-          <input id="loginEmail" class="input" placeholder="Email"/>
+          <input id="loginEmail" class="input" placeholder="Correo electrónico"/>
           <button class="btn-primary w-full" onclick="demoLogin()">Continuar</button>
           <button class="btn w-full" onclick="guestBrowse()">Seguir como visitante</button>
         </div>
@@ -358,20 +381,20 @@
         creditWallet(2450, "welcome_bonus");
       }
       renderAuthArea();
-      toast("Welcome back!");
+      toast("¡Bienvenido de nuevo!");
       logEvent("Auth.Login", { userId: state.user.id, email: state.user.email });
       $('#modalRoot').innerHTML = "";
       router();
     }
     function guestBrowse(){
       $('#modalRoot').innerHTML = "";
-      toast("Browsing as guest. Log in to join tournaments.");
+      toast("Exploras como invitado. Inicia sesión para unirte a los torneos.");
     }
     function logout(){
       state.isAuth = false;
       state.user = null;
       renderAuthArea();
-      toast("Logged out");
+      toast("Sesión cerrada");
       logEvent("Auth.Logout", {});
       router();
     }
@@ -394,7 +417,7 @@
     function openTopUp(){
       const modal = openModal(`
         <div class="flex items-start justify-between">
-          <h2 class="text-lg font-bold">Top Up Lukas</h2>
+          <h2 class="text-lg font-bold">Recargar Lukas</h2>
           <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
         </div>
         <div class="mt-4 grid grid-cols-3 gap-3">
@@ -403,33 +426,33 @@
           `).join('')}
         </div>
         <div class="mt-4">
-          <input id="customTopUp" class="input" type="number" min="100" step="100" placeholder="Custom amount (min 100)"/>
-          <button class="btn-primary mt-2 w-full" onclick="performTopUp(parseInt(document.getElementById('customTopUp').value||0))">Pay & Credit</button>
-          <p class="text-xs text-habla-500 mt-2">Simulación de checkout (Pagos → Wallet).</p>
+          <input id="customTopUp" class="input" type="number" min="100" step="100" placeholder="Monto personalizado (mín 100)"/>
+          <button class="btn-primary mt-2 w-full" onclick="performTopUp(parseInt(document.getElementById('customTopUp').value||0))">Pagar y acreditar</button>
+          <p class="text-xs text-habla-500 mt-2">Simulación de checkout (Pagos → Billetera).</p>
         </div>
       `);
-      if (!state.isAuth) openLoginModal("Top Up");
+      if (!state.isAuth) openLoginModal("recarga de Lukas");
     }
     function performTopUp(amount){
-      if (!amount || amount<100) { toast("Enter a valid amount", "warn"); return; }
-      if (!state.isAuth) { openLoginModal("Top Up"); return; }
+      if (!amount || amount<100) { toast("Ingresa un monto válido", "warn"); return; }
+      if (!state.isAuth) { openLoginModal("recargar Lukas"); return; }
       logEvent("Payment.Initiated", { amount });
       creditWallet(amount, "payment_settled");
       logEvent("Payment.Settled", { amount });
       if (amount >= 10000) {
-        recordRisk({ service: "Pagos", reason: "High top up velocity", amount });
+        recordRisk({ service: "Pagos", reason: "Alta velocidad de recarga", amount });
       }
-      toast(`Credited ${fmt(amount)} Lukas`, "success");
+      toast(`Se acreditaron ${fmt(amount)} Lukas`, "success");
       $('#modalRoot').innerHTML = "";
     }
 
     // ---------- Matches (Torneos) ----------
     function nextLockCountdown(){
       const open = state.matches.filter(m => m.status==="open");
-      if (!open.length) return {label:"No active locks", remaining:-1};
+      if (!open.length) return {label:"Sin cierres activos", remaining:-1};
       const nearest = open.reduce((a,b)=> a.kickoff < b.kickoff ? a : b);
       const diff = nearest.kickoff - Date.now();
-      if (diff <= 0) return {label:"Locking...", remaining:0};
+      if (diff <= 0) return {label:"Cerrando...", remaining:0};
       const mm = Math.floor(diff/60000);
       const ss = Math.floor((diff%60000)/1000);
       return {label:`${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`, remaining:diff};
@@ -443,29 +466,29 @@
       const sidebar = `
         <aside class="hidden lg:block lg:col-span-4">
           <div class="card p-4">
-            <div class="text-sm text-habla-600">Next Lock</div>
+            <div class="text-sm text-habla-600">Próximo cierre</div>
             <div class="text-3xl font-black mt-1">${countdown.label}</div>
-            <div class="text-xs text-habla-500">Until nearest match locks</div>
-            <button class="btn-primary w-full mt-4" onclick="quickCreateTicket()">Quick Create Ticket</button>
+            <div class="text-xs text-habla-500">Hasta el cierre más próximo</div>
+            <button class="btn-primary w-full mt-4" onclick="quickCreateTicket()">Crear combinada rápida</button>
           </div>
           <div class="card p-4 mt-4">
-            <div class="font-semibold mb-2">Top Players Today</div>
+            <div class="font-semibold mb-2">Mejores jugadores hoy</div>
             <ul class="text-sm space-y-1">
               ${state.topPlayersToday.map(p => `<li class="flex justify-between"><span>${p.name}</span><span class="font-semibold">${p.pts} pts</span></li>`).join('')}
             </ul>
           </div>
           <div class="card p-4 mt-4">
-            <div class="font-semibold mb-3">Prize Store Highlights</div>
+            <div class="font-semibold mb-3">Destacados de la tienda</div>
             ${state.store.slice(0,2).map(i => `
               <div class="flex items-center justify-between mb-2">
                 <div>
                   <div class="text-sm font-medium">${i.name}</div>
                   <div class="text-xs text-habla-500">${fmt(i.price)} Lukas</div>
                 </div>
-                <a href="#/store" class="btn">View</a>
+                <a href="#/store" class="btn">Ver</a>
               </div>
             `).join('')}
-            <a href="#/store" class="btn-primary w-full mt-2">Browse Store</a>
+            <a href="#/store" class="btn-primary w-full mt-2">Ver tienda</a>
           </div>
         </aside>
       `;
@@ -481,17 +504,17 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <section class="lg:col-span-8">
             <div class="flex items-center justify-between mb-4">
-              <h1 class="text-xl font-bold">Football Matches</h1>
+              <h1 class="text-xl font-bold">Partidos de fútbol</h1>
               <div class="flex gap-2">
                 ${tabs.map(t => `
                   <a class="btn ${activeTab===t?'btn-primary':''}" href="#/matches/${t}">
-                    ${t==="open"?"Open":t==="locked"?"Locked":t==="in_play"?"In-Play":"Finished"}
+                    ${t==="open"?"Abiertos":t==="locked"?"Bloqueados":t==="in_play"?"En juego":"Finalizados"}
                   </a>
                 `).join('')}
               </div>
             </div>
             <div id="matchesList" class="space-y-4">
-              ${list || `<div class="text-sm text-habla-600">No matches in this tab.</div>`}
+              ${list || `<div class="text-sm text-habla-600">No hay partidos en esta pestaña.</div>`}
             </div>
           </section>
           ${sidebar}
@@ -500,15 +523,15 @@
     }
 
     function matchCard(m){
-      const statusTag = m.status==="open" ? `<span class="tag">Open · Lock in ${Math.max(0, Math.floor((m.kickoff-Date.now())/60000))}m</span>` :
-                        m.status==="locked" ? `<span class="tag">Locked · started</span>` :
-                        m.status==="in_play" ? `<span class="tag">In-Play</span>` :
-                        `<span class="tag">Finished</span>`;
+      const statusTag = m.status==="open" ? `<span class="tag">Abierto · Cierra en ${Math.max(0, Math.floor((m.kickoff-Date.now())/60000))}m</span>` :
+                        m.status==="locked" ? `<span class="tag">Bloqueado · iniciado</span>` :
+                        m.status==="in_play" ? `<span class="tag">En juego</span>` :
+                        `<span class="tag">Finalizado</span>`;
       const cta =
-        m.status==="open" ? `<button class="btn-primary w-full mt-3" onclick="createTicket('${m.id}')">Create Ticket</button>` :
-        m.status==="locked" ? `<div class="w-full mt-3 btn cursor-default">Ticket Sales Closed</div>` :
-        m.status==="in_play" ? `<a class="btn-primary w-full mt-3" href="#/match/${m.id}">View Live Results</a>` :
-        `<a class="btn-primary w-full mt-3" href="#/match/${m.id}">View Results</a>`;
+        m.status==="open" ? `<button class="btn-primary w-full mt-3" onclick="createTicket('${m.id}')">Crear combinada</button>` :
+        m.status==="locked" ? `<div class="w-full mt-3 btn cursor-default">Ventas cerradas</div>` :
+        m.status==="in_play" ? `<a class="btn-primary w-full mt-3" href="#/match/${m.id}">Ver resultados en vivo</a>` :
+        `<a class="btn-primary w-full mt-3" href="#/match/${m.id}">Ver resultados</a>`;
 
       return `
         <article class="card p-4">
@@ -517,14 +540,14 @@
               ${statusTag}
               <h3 class="mt-2 text-lg font-bold">${m.home} <span class="text-habla-400">VS</span> ${m.away}</h3>
               <div class="text-sm text-habla-600 mt-1">
-                Entry Fee <strong>${m.entryFee} Lukas</strong> · <span class="ml-2">Players: ${m.players}</span>
-                · <span class="ml-2">Prize Pool: ${fmt(m.prizePool)} Lukas</span>
-                ${m.score ? `· <span class="ml-2">Live: ${m.score}</span>` : ``}
+                Costo de entrada <strong>${m.entryFee} Lukas</strong> · <span class="ml-2">Jugadores: ${m.players}</span>
+                · <span class="ml-2">Pozo: ${fmt(m.prizePool)} Lukas</span>
+                ${m.score ? `· <span class="ml-2">En vivo: ${m.score}</span>` : ``}
               </div>
             </div>
             <div class="text-sm text-habla-600 text-right">
               <div>${new Date(m.kickoff).toLocaleString()}</div>
-              <a class="link text-xs" href="#/match/${m.id}">Match details</a>
+              <a class="link text-xs" href="#/match/${m.id}">Detalle del partido</a>
             </div>
           </div>
           ${cta}
@@ -534,7 +557,7 @@
 
     function matchDetailView(matchId){
       const m = state.matches.find(x=>x.id===matchId);
-      if (!m) return `<div>Match not found</div>`;
+      if (!m) return `<div>Partido no encontrado</div>`;
 
       const canSubmit = m.status==="open";
       const showTransparency = m.status==="in_play" || m.status==="finished";
@@ -543,33 +566,33 @@
             <div class="card p-4 mt-4">
               <div class="font-semibold mb-2">Operaciones del flujo</div>
               <div class="flex flex-wrap gap-2">
-                ${m.status==="open" ? `<button class="btn" onclick="lockMatch('${m.id}')">Lock Sales</button>` : ``}
-                ${m.status==="locked" ? `<button class="btn" onclick="startMatch('${m.id}')">Start Match</button>` : ``}
-                ${m.status==="in_play" ? `<button class="btn" onclick="openFinalizeMatch('${m.id}')">Finalize Match</button>` : ``}
-                ${m.status==="finished" && !state.settlements[m.id] ? `<button class="btn" onclick="settlePayouts('${m.id}')">Settle Payouts</button>` : ``}
+                ${m.status==="open" ? `<button class="btn" onclick="lockMatch('${m.id}')">Bloquear ventas</button>` : ``}
+                ${m.status==="locked" ? `<button class="btn" onclick="startMatch('${m.id}')">Iniciar partido</button>` : ``}
+                ${m.status==="in_play" ? `<button class="btn" onclick="openFinalizeMatch('${m.id}')">Finalizar partido</button>` : ``}
+                ${m.status==="finished" && !state.settlements[m.id] ? `<button class="btn" onclick="settlePayouts('${m.id}')">Liquidar premios</button>` : ``}
               </div>
-              <p class="text-xs text-habla-500 mt-3">Simula Torneos, Oráculos, Scoring, Leaderboard y Liquidación paso a paso.</p>
-              ${state.settlements[m.id] ? `<p class="text-xs text-green-600 mt-2">Payouts posted en Wallet.</p>` : ``}
+              <p class="text-xs text-habla-500 mt-3">Simula Torneos, Oráculos, Scoring, tabla de posiciones y Liquidación paso a paso.</p>
+              ${state.settlements[m.id] ? `<p class="text-xs text-green-600 mt-2">Premios abonados en la billetera.</p>` : ``}
             </div>`;
 
       return `
         <div class="flex items-center justify-between mb-4">
-          <a href="#/matches" class="link">← Back to Matches</a>
+          <a href="#/matches" class="link">← Volver a Partidos</a>
           <div class="text-sm text-habla-600">${new Date(m.kickoff).toLocaleString()}</div>
         </div>
 
         <div class="card p-5">
           <div class="flex items-start justify-between">
             <div>
-              <div class="tag">${m.status.replace("_"," ")}</div>
+              <div class="tag">${statusLabel(m.status)}</div>
               <h1 class="text-2xl font-black mt-2">${m.home} <span class="text-habla-400">VS</span> ${m.away}</h1>
-              <div class="text-sm text-habla-600 mt-1">Entry Fee <strong>${m.entryFee} Lukas</strong> · Prize Pool ${fmt(m.prizePool)} Lukas</div>
-              ${m.score ? `<div class="mt-1 text-sm">Live: <strong>${m.score}</strong></div>` : ``}
+              <div class="text-sm text-habla-600 mt-1">Costo de entrada <strong>${m.entryFee} Lukas</strong> · Pozo ${fmt(m.prizePool)} Lukas</div>
+              ${m.score ? `<div class="mt-1 text-sm">En vivo: <strong>${m.score}</strong></div>` : ``}
             </div>
             <div class="space-x-2">
-              ${canSubmit ? `<button class="btn-primary" onclick="createTicket('${m.id}')">Create Ticket</button>` : ``}
-              ${showTransparency ? `<button class="btn" onclick="openTransparency('${m.id}')">Transparency</button>` : ``}
-              ${showLeaderboard ? `<button class="btn" onclick="openLeaderboard('${m.id}')">Leaderboard</button>` : ``}
+              ${canSubmit ? `<button class="btn-primary" onclick="createTicket('${m.id}')">Crear combinada</button>` : ``}
+              ${showTransparency ? `<button class="btn" onclick="openTransparency('${m.id}')">Transparencia</button>` : ``}
+              ${showLeaderboard ? `<button class="btn" onclick="openLeaderboard('${m.id}')">Tabla de posiciones</button>` : ``}
             </div>
           </div>
         </div>
@@ -577,18 +600,18 @@
         <section class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="lg:col-span-2">
             <div class="card p-4">
-              <div class="font-semibold mb-2">Match Timeline (demo)</div>
-              <div class="h-24 flex items-center justify-center text-sm text-habla-500">Events feed placeholder</div>
+              <div class="font-semibold mb-2">Cronología del partido (demo)</div>
+              <div class="h-24 flex items-center justify-center text-sm text-habla-500">Placeholder del feed de eventos</div>
             </div>
             <div class="card p-4 mt-4">
-              <div class="font-semibold mb-2">Your Tickets for this Match</div>
+              <div class="font-semibold mb-2">Tus combinadas para este partido</div>
               ${myTicketsForMatch(matchId)}
             </div>
             ${operationsCard}
           </div>
           <aside>
             <div class="card p-4">
-              <div class="font-semibold mb-2">Rules & Points</div>
+              <div class="font-semibold mb-2">Reglas y puntajes</div>
               <ul class="text-sm space-y-1">
                 <li>1X2 (Local/Empate/Visita) — <strong>3 pts</strong></li>
                 <li>Ambos equipos anotan — <strong>2 pts</strong></li>
@@ -604,21 +627,21 @@
 
     function myTicketsForMatch(matchId){
       const items = state.tickets.filter(t => t.matchId===matchId && state.user && t.userId===state.user.id);
-      if (!state.isAuth) return `<div class="text-sm text-habla-600">Log in to see your tickets.</div>`;
-      if (!items.length) return `<div class="text-sm text-habla-600">You have no tickets yet.</div>`;
+      if (!state.isAuth) return `<div class="text-sm text-habla-600">Inicia sesión para ver tus combinadas.</div>`;
+      if (!items.length) return `<div class="text-sm text-habla-600">Aún no tienes combinadas.</div>`;
       return `
         <ul class="divide-y divide-habla-200">
           ${items.map(t => `
             <li class="py-3 text-sm">
               <div class="flex items-center justify-between">
                 <div>
-                  <div class="font-medium">Ticket #${t.id.slice(0,6)}</div>
-                  <div class="text-habla-600">1X2: ${t.combo.p1x2} · BTTS: ${t.combo.btts} · O2.5: ${t.combo.over25} · Red: ${t.combo.red} · Exact: ${t.combo.exact.h}-${t.combo.exact.a}</div>
-                  <div class="text-xs text-habla-500 mt-1">Submitted ${new Date(t.ts).toLocaleString()}</div>
+                  <div class="font-medium">Combinada #${t.id.slice(0,6)}</div>
+                  <div class="text-habla-600">1X2: ${p1x2Label(t.combo.p1x2)} · BTTS: ${yesNoLabel(t.combo.btts)} · O2.5: ${yesNoLabel(t.combo.over25)} · Roja: ${yesNoLabel(t.combo.red)} · Exacto: ${t.combo.exact.h}-${t.combo.exact.a}</div>
+                  <div class="text-xs text-habla-500 mt-1">Enviada ${new Date(t.ts).toLocaleString()}</div>
                 </div>
                 <div class="text-right">
-                  <div class="pill">Fee ${t.fee} Lukas</div>
-                  ${typeof t.points==='number' ? `<div class="mt-1 text-sm">Pts: <strong>${t.points}</strong> · Pos: ${t.position ?? '-'}</div>` : ``}
+                  <div class="pill">Costo ${t.fee} Lukas</div>
+                  ${typeof t.points==='number' ? `<div class="mt-1 text-sm">Pts: <strong>${t.points}</strong> · Pos.: ${t.position ?? '-'}</div>` : ``}
                 </div>
               </div>
             </li>
@@ -631,12 +654,12 @@
     function createTicket(matchId){
       const m = state.matches.find(x=>x.id===matchId);
       if (!m) return;
-      if (m.status!=="open") { toast("Ticket sales closed", "warn"); return; }
-      if (!requireAuth("Create Ticket")) return;
+      if (m.status!=="open") { toast("Las ventas están cerradas", "warn"); return; }
+      if (!requireAuth("crear una combinada")) return;
 
       openModal(`
         <div class="flex items-start justify-between">
-          <h2 class="text-lg font-bold">Create Ticket · ${m.home} vs ${m.away}</h2>
+          <h2 class="text-lg font-bold">Crear combinada · ${m.home} vs ${m.away}</h2>
           <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
         </div>
         <form id="ticketForm" class="mt-4 space-y-4">
@@ -645,7 +668,7 @@
             <div class="grid grid-cols-3 gap-2">
               ${["Home","Draw","Away"].map(v => `
                 <label class="flex items-center gap-2 border rounded-xl px-3 py-2 cursor-pointer">
-                  <input type="radio" name="p1x2" value="${v}" required/> ${v}
+                  <input type="radio" name="p1x2" value="${v}" required/> ${p1x2Label(v)}
                 </label>
               `).join('')}
             </div>
@@ -656,21 +679,21 @@
               <label class="block text-sm font-semibold mb-1">2) Ambos anotan (2 pts)</label>
               <select name="btts" class="input" required>
                 <option value="">Selecciona</option>
-                <option>Yes</option><option>No</option>
+                <option value="Yes">Sí</option><option value="No">No</option>
               </select>
             </div>
             <div>
               <label class="block text-sm font-semibold mb-1">3) Más de 2.5 goles (2 pts)</label>
               <select name="over25" class="input" required>
                 <option value="">Selecciona</option>
-                <option>Yes</option><option>No</option>
+                <option value="Yes">Sí</option><option value="No">No</option>
               </select>
             </div>
             <div>
               <label class="block text-sm font-semibold mb-1">4) ¿Habrá roja? (6 pts)</label>
               <select name="red" class="input" required>
                 <option value="">Selecciona</option>
-                <option>Yes</option><option>No</option>
+                <option value="Yes">Sí</option><option value="No">No</option>
               </select>
             </div>
           </div>
@@ -685,8 +708,8 @@
           </div>
 
           <div class="flex items-center justify-between mt-2">
-            <div class="text-sm text-habla-600">Entry Fee: <strong>${m.entryFee} Lukas</strong></div>
-            <button class="btn-primary" onclick="submitTicket(event,'${m.id}')">Submit Ticket</button>
+            <div class="text-sm text-habla-600">Costo de entrada: <strong>${m.entryFee} Lukas</strong></div>
+            <button class="btn-primary" onclick="submitTicket(event,'${m.id}')">Enviar combinada</button>
           </div>
           <p class="text-xs text-habla-500">Nota: No se pueden editar combinadas. Puedes enviar múltiples combinadas siempre que no sean idénticas.</p>
         </form>
@@ -725,7 +748,7 @@
         state.revealed[matchId] = [...state.transparency[matchId]];
       }
       logEvent("Ticket.Submitted", { matchId, ticketId: ticket.id });
-      toast("Ticket enviado ✓", "success");
+      toast("Combinada enviada ✓", "success");
       $('#modalRoot').innerHTML = "";
       router();
     }
@@ -738,29 +761,29 @@
       const isRevealed = match && (match.status === "in_play" || match.status === "finished");
       openModal(`
         <div class="flex items-start justify-between">
-          <h2 class="text-lg font-bold">Transparency — All Tickets</h2>
+          <h2 class="text-lg font-bold">Transparencia — Todas las combinadas</h2>
           <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
         </div>
         <div class="mt-3 max-h-[60vh] overflow-auto">
           <table class="w-full text-sm">
             <thead><tr class="text-left text-habla-600">
-              <th class="py-2">User</th><th>1X2</th><th>BTTS</th><th>O2.5</th><th>Red</th><th>Exact</th>
+              <th class="py-2">Usuario</th><th>1X2</th><th>BTTS</th><th>O2.5</th><th>Roja</th><th>Exacto</th>
             </tr></thead>
             <tbody>
               ${(isRevealed ? revealed : []).map(r => `
                 <tr class="border-t">
                   <td class="py-2">${r.user}</td>
-                  <td>${r.combo.p1x2}</td>
-                  <td>${r.combo.btts}</td>
-                  <td>${r.combo.over25}</td>
-                  <td>${r.combo.red}</td>
+                  <td>${p1x2Label(r.combo.p1x2)}</td>
+                  <td>${yesNoLabel(r.combo.btts)}</td>
+                  <td>${yesNoLabel(r.combo.over25)}</td>
+                  <td>${yesNoLabel(r.combo.red)}</td>
                   <td>${r.combo.exact.h}-${r.combo.exact.a}</td>
                 </tr>
-              `).join('') || `<tr><td class="py-3 text-habla-600" colspan="6">Tickets will be revealed after kickoff.</td></tr>`}
+              `).join('') || `<tr><td class="py-3 text-habla-600" colspan="6">Las combinadas se revelarán al inicio del partido.</td></tr>`}
             </tbody>
           </table>
         </div>
-        <p class="text-xs text-habla-500 mt-2">${isRevealed ? `Publicado automáticamente al iniciar el partido.` : `Tickets en cola: ${appended.length}. Se revelan al kickoff.`}</p>
+        <p class="text-xs text-habla-500 mt-2">${isRevealed ? `Publicado automáticamente al iniciar el partido.` : `Combinadas en cola: ${appended.length}. Se revelan al kickoff.`}</p>
       `);
     }
 
@@ -768,13 +791,13 @@
       const lb = state.leaderboards[matchId] || [];
       openModal(`
         <div class="flex items-start justify-between">
-          <h2 class="text-lg font-bold">Leaderboard</h2>
+          <h2 class="text-lg font-bold">Tabla de posiciones</h2>
           <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
         </div>
         <div class="mt-3">
           <table class="w-full text-sm">
             <thead><tr class="text-left text-habla-600">
-              <th class="py-2">#</th><th>User</th><th>Ticket</th><th>Pts</th><th>Prize</th>
+              <th class="py-2">#</th><th>Usuario</th><th>Combinada</th><th>Pts</th><th>Premio</th>
             </tr></thead>
             <tbody>
               ${lb.map((r,i)=>`
@@ -785,7 +808,7 @@
                   <td><strong>${r.points}</strong></td>
                   <td>${r.award ? `${fmt(r.award)} Lukas`: '-'}</td>
                 </tr>
-              `).join('') || `<tr><td class="py-3 text-habla-600" colspan="5">Leaderboard available when match finishes.</td></tr>`}
+              `).join('') || `<tr><td class="py-3 text-habla-600" colspan="5">La tabla de posiciones estará disponible al finalizar el partido.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -794,20 +817,20 @@
 
     function lockMatch(matchId){
       const match = state.matches.find(x=>x.id===matchId);
-      if (!match || match.status !== "open") { toast("Match is not open", "warn"); return; }
+      if (!match || match.status !== "open") { toast("El partido no está en estado abierto", "warn"); return; }
       match.status = "locked";
       logEvent("Match.StateChanged", { matchId, status: "locked" });
-      toast("Ventas bloqueadas — Match locked", "success");
+      toast("Ventas bloqueadas — Partido bloqueado", "success");
       router();
     }
 
     function startMatch(matchId){
       const match = state.matches.find(x=>x.id===matchId);
-      if (!match || match.status !== "locked") { toast("Match must be locked first", "warn"); return; }
+      if (!match || match.status !== "locked") { toast("Debes bloquear el partido primero", "warn"); return; }
       match.status = "in_play";
-      logEvent("Match.StateChanged", { matchId, status: "en_juego" });
+      logEvent("Match.StateChanged", { matchId, status: "in_play" });
       revealTickets(matchId);
-      toast("Match en juego — Tickets revelados", "success");
+      toast("Partido en juego — Combinadas reveladas", "success");
       router();
     }
 
@@ -820,7 +843,7 @@
     function openFinalizeMatch(matchId){
       const match = state.matches.find(x=>x.id===matchId);
       if (!match) return;
-      if (match.status !== "in_play") { toast("Match must be in play", "warn"); return; }
+      if (match.status !== "in_play") { toast("El partido debe estar en juego", "warn"); return; }
       openModal(`
         <div class="flex items-start justify-between">
           <h2 class="text-lg font-bold">Finalizar partido</h2>
@@ -841,13 +864,13 @@
             <label class="block text-sm font-semibold mb-1">¿Hubo tarjeta roja?</label>
             <select class="input" name="redCard" required>
               <option value="">Selecciona</option>
-              <option>Yes</option>
-              <option>No</option>
+              <option value="Yes">Sí</option>
+              <option value="No">No</option>
             </select>
           </div>
           <button class="btn-primary">Publicar hechos finales</button>
         </form>
-        <p class="text-xs text-habla-500 mt-3">Simula la ingesta de Oráculos, dispara Scoring y Leaderboard.</p>
+        <p class="text-xs text-habla-500 mt-3">Simula la ingesta de Oráculos, dispara Scoring y la tabla de posiciones.</p>
       `);
     }
 
@@ -867,7 +890,7 @@
       };
       applyMatchFacts(matchId, facts);
       $('#modalRoot').innerHTML = "";
-      toast("Match finalized", "success");
+      toast("Partido finalizado", "success");
     }
 
     function applyMatchFacts(matchId, facts){
@@ -876,7 +899,7 @@
       match.status = "finished";
       match.score = `${facts.home}-${facts.away} FT`;
       state.matchFacts[matchId] = facts;
-      logEvent("Match.StateChanged", { matchId, status: "terminado" });
+      logEvent("Match.StateChanged", { matchId, status: "finished" });
       logEvent("MatchFacts.Finalized", { matchId, score: match.score, red: facts.red });
       runScoring(matchId);
       router();
@@ -884,7 +907,7 @@
 
     function runScoring(matchId){
       const facts = state.matchFacts[matchId];
-      if (!facts) { toast("Load final facts first", "warn"); return; }
+      if (!facts) { toast("Carga primero los datos finales", "warn"); return; }
       const tickets = state.tickets.filter(t => t.matchId === matchId);
       tickets.forEach(ticket => {
         let points = 0;
@@ -920,10 +943,10 @@
     }
 
     function settlePayouts(matchId){
-      if (state.settlements[matchId]) { toast("Payouts already settled", "warn"); return; }
+      if (state.settlements[matchId]) { toast("Los premios ya fueron liquidados", "warn"); return; }
       const match = state.matches.find(x=>x.id===matchId);
       const leaderboard = state.leaderboards[matchId] || [];
-      if (!match || !leaderboard.length) { toast("Leaderboard missing", "warn"); return; }
+      if (!match || !leaderboard.length) { toast("Falta la tabla de posiciones", "warn"); return; }
       const distribution = [0.6, 0.3, 0.1];
       const winners = leaderboard.slice(0, 3).map((entry, idx) => ({
         ...entry,
@@ -943,7 +966,7 @@
       state.leaderboards[matchId] = leaderboard;
       state.settlements[matchId] = true;
       logEvent("Payouts.Posted", { matchId, winners });
-      toast("Payouts settled", "success");
+      toast("Premios liquidados", "success");
       $('#modalRoot').innerHTML = "";
       router();
     }
@@ -952,11 +975,11 @@
     function storeView(){
       return `
         <div class="flex items-center justify-between mb-4">
-          <h1 class="text-xl font-bold">Prize Store</h1>
-          <div class="text-sm text-habla-600">Redeem with Lukas</div>
+          <h1 class="text-xl font-bold">Tienda de premios</h1>
+          <div class="text-sm text-habla-600">Canjea con Lukas</div>
         </div>
         <details class="card p-4 mb-4">
-          <summary class="font-semibold cursor-pointer">Prize operations</summary>
+          <summary class="font-semibold cursor-pointer">Operaciones de premios</summary>
           <p class="text-xs text-habla-500 mt-2">Gestiona redenciones y sigue la trazabilidad sin salir de la tienda.</p>
           <div class="flex flex-wrap gap-2 mt-3">
             <button class="btn" onclick="openFulfillmentQueue()">Revisar cola</button>
@@ -969,7 +992,7 @@
         </div>
         <div class="card p-4 mt-6">
           <div class="flex items-center justify-between">
-            <div class="font-semibold">Fulfillment Queue</div>
+            <div class="font-semibold">Cola de cumplimiento</div>
             <div class="text-xs text-habla-500">Despacha premios físicos y digitales</div>
           </div>
           <table class="w-full text-sm mt-3">
@@ -979,13 +1002,13 @@
                 <tr class="border-t">
                   <td class="py-2">#${order.id.slice(0,6)}</td>
                   <td>${order.name}</td>
-                  <td class="capitalize">${order.type}</td>
-                  <td>${order.status.replace('_',' ')}</td>
+                  <td class="capitalize">${storeTypeLabel(order.type)}</td>
+                  <td>${orderStatusLabel(order.status)}</td>
                   <td class="text-right">
-                    ${order.status === 'requested' ? `<button class="btn" onclick="fulfillOrder('${order.id}')">Mark Fulfilled</button>` : `<span class="text-xs text-habla-500">${order.status === 'completed' ? 'Delivered' : '—'}</span>`}
+                    ${order.status === 'requested' ? `<button class="btn" onclick="fulfillOrder('${order.id}')">Marcar como entregado</button>` : `<span class="text-xs text-habla-500">${order.status === 'completed' ? 'Entregado' : '—'}</span>`}
                   </td>
                 </tr>
-              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="5">No redemptions yet.</td></tr>`}
+              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="5">Sin canjes aún.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -995,12 +1018,12 @@
       const allow = state.isAuth && state.wallet.lukas >= item.price && item.stock>0;
       return `
         <div class="card p-4 flex flex-col">
-          <div class="h-32 bg-habla-100 rounded-xl flex items-center justify-center text-habla-400">Image</div>
+          <div class="h-32 bg-habla-100 rounded-xl flex items-center justify-center text-habla-400">Imagen</div>
           <div class="mt-3 font-semibold">${item.name}</div>
-          <div class="text-sm text-habla-600">${fmt(item.price)} Lukas · Stock: ${item.stock}</div>
+          <div class="text-sm text-habla-600">${fmt(item.price)} Lukas · Existencias: ${item.stock}</div>
           <div class="mt-auto pt-3">
             <button class="btn-primary w-full" ${allow?'':'disabled'} onclick="redeem('${item.id}')">
-              ${allow? 'Redeem' : !state.isAuth ? 'Log in to Redeem' : item.stock<=0 ? 'Out of Stock' : 'Insufficient Lukas'}
+              ${allow? 'Canjear' : !state.isAuth ? 'Inicia sesión para canjear' : item.stock<=0 ? 'Sin stock' : 'Lukas insuficientes'}
             </button>
           </div>
         </div>
@@ -1008,34 +1031,34 @@
     }
     function redeem(itemId){
       const item = state.store.find(s=>s.id===itemId);
-      if (!requireAuth("Redeem prize")) return;
+      if (!requireAuth("canjear un premio")) return;
       if (!item) return;
-      if (item.stock<=0) { toast("Out of stock", "warn"); return; }
-      if (!debitWallet(item.price, `reward_redemption:${itemId}`)) { toast("Insufficient Lukas", "warn"); return; }
+      if (item.stock<=0) { toast("Sin stock", "warn"); return; }
+      if (!debitWallet(item.price, `reward_redemption:${itemId}`)) { toast("Lukas insuficientes", "warn"); return; }
       item.stock -= 1;
       const order = { id: uid(), itemId, name:item.name, price:item.price, ts: nowIso(), type:item.type, status: item.type==='digital'?'completed':'requested' };
       state.orders.unshift(order);
       logEvent("Reward.Redeemed", { orderId: order.id, itemId });
       if (order.type === 'physical' && order.price >= 30000) {
-        recordRisk({ service: "Tienda", reason: "High value redemption", orderId: order.id, itemId, amount: order.price });
+        recordRisk({ service: "Tienda", reason: "Canje de alto valor", orderId: order.id, itemId, amount: order.price });
       }
-      toast("Redemption successful ✓", "success");
+      toast("Canje exitoso ✓", "success");
       router();
     }
 
     function fulfillOrder(orderId){
       const order = state.orders.find(o => o.id === orderId);
-      if (!order) { toast("Order not found", "warn"); return; }
+      if (!order) { toast("Orden no encontrada", "warn"); return; }
       order.status = "completed";
       logEvent("Fulfillment.Completed", { orderId });
-      toast("Order fulfilled", "success");
+      toast("Orden entregada", "success");
       router();
     }
 
     function openFulfillmentQueue(){
       openModal(`
         <div class="flex items-start justify-between">
-          <h2 class="text-lg font-bold">Fulfillment Queue</h2>
+          <h2 class="text-lg font-bold">Cola de cumplimiento</h2>
           <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
         </div>
         <div class="mt-3">
@@ -1046,13 +1069,13 @@
                 <tr class="border-t">
                   <td class="py-2">#${order.id.slice(0,6)}</td>
                   <td>${order.name}</td>
-                  <td class="capitalize">${order.type}</td>
-                  <td>${order.status}</td>
+                  <td class="capitalize">${storeTypeLabel(order.type)}</td>
+                  <td>${orderStatusLabel(order.status)}</td>
                   <td class="text-right">
-                    ${order.status === 'requested' ? `<button class="btn" onclick=\"fulfillOrder('${order.id}')\">Mark Fulfilled</button>` : `<span class="text-xs text-habla-500">Completed</span>`}
+                    ${order.status === 'requested' ? `<button class="btn" onclick=\"fulfillOrder('${order.id}')\">Marcar como entregado</button>` : `<span class="text-xs text-habla-500">Completado</span>`}
                   </td>
                 </tr>
-              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="5">No redemptions pending.</td></tr>`}
+              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="5">No hay canjes pendientes.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -1071,11 +1094,11 @@
             <div class="card p-3 flex items-center justify-between">
               <div>
                 <div class="font-semibold">${m.home} vs ${m.away}</div>
-                <div class="text-xs text-habla-500">Prize Pool: ${fmt(m.prizePool)} Lukas</div>
+                <div class="text-xs text-habla-500">Pozo: ${fmt(m.prizePool)} Lukas</div>
               </div>
-              <button class="btn" onclick="settlePayouts('${m.id}')">Settle</button>
+              <button class="btn" onclick="settlePayouts('${m.id}')">Liquidar</button>
             </div>
-          `).join('') : `<div class="text-habla-600">No finished matches awaiting payouts.</div>`}
+          `).join('') : `<div class="text-habla-600">No hay partidos finalizados pendientes de premios.</div>`}
         </div>
       `);
     }
@@ -1083,7 +1106,7 @@
     function openRiskCenter(){
       openModal(`
         <div class="flex items-start justify-between">
-          <h2 class="text-lg font-bold">Risk Flags</h2>
+          <h2 class="text-lg font-bold">Alertas de riesgo</h2>
           <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
         </div>
         <div class="mt-3 max-h-[60vh] overflow-auto">
@@ -1096,7 +1119,7 @@
                   <td>${flag.service}</td>
                   <td class="text-habla-600">${flag.reason || ''} ${flag.amount ? `(${fmt(flag.amount)} Lukas)` : ''}</td>
                 </tr>
-              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="3">No risk alerts.</td></tr>`}
+              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="3">Sin alertas de riesgo.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -1106,7 +1129,7 @@
     function openAuditLog(){
       openModal(`
         <div class="flex items-start justify-between">
-          <h2 class="text-lg font-bold">Event Log</h2>
+          <h2 class="text-lg font-bold">Bitácora de eventos</h2>
           <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
         </div>
         <div class="mt-3 max-h-[60vh] overflow-auto">
@@ -1119,7 +1142,7 @@
                   <td>${evt.type}</td>
                   <td class="text-habla-600">${JSON.stringify(evt.detail)}</td>
                 </tr>
-              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="3">No events yet.</td></tr>`}
+              `).join('') : `<tr><td class="py-3 text-habla-600" colspan="3">Sin eventos todavía.</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -1141,20 +1164,20 @@
         <div class="card p-5">
           <div class="flex items-center justify-between">
             <div>
-              <div class="text-sm text-habla-600">Current Balance</div>
+              <div class="text-sm text-habla-600">Saldo actual</div>
               <div class="text-3xl font-black">${fmt(state.wallet.lukas)} Lukas</div>
             </div>
             <div class="space-x-2">
-              <button class="btn" onclick="openTopUp()">Top Up</button>
-              <a class="btn" href="#/store">Go to Store</a>
+              <button class="btn" onclick="openTopUp()">Recargar</button>
+              <a class="btn" href="#/store">Ir a la tienda</a>
             </div>
           </div>
         </div>
         <div class="card p-5 mt-6">
-          <div class="font-semibold mb-2">Wallet Movements</div>
+          <div class="font-semibold mb-2">Movimientos de la billetera</div>
           <table class="w-full text-sm">
-            <thead><tr class="text-left text-habla-600"><th class="py-2">Date</th><th>Note</th><th class="text-right">Amount</th></tr></thead>
-            <tbody>${rows || `<tr><td class="py-3 text-habla-600" colspan="3">No movements yet.</td></tr>`}</tbody>
+            <thead><tr class="text-left text-habla-600"><th class="py-2">Fecha</th><th>Nota</th><th class="text-right">Monto</th></tr></thead>
+            <tbody>${rows || `<tr><td class="py-3 text-habla-600" colspan="3">Aún no hay movimientos.</td></tr>`}</tbody>
           </table>
         </div>
       `;
@@ -1162,11 +1185,11 @@
 
     function myTicketsView(){
       const items = state.tickets.filter(t => state.user && t.userId===state.user.id && Date.now()-new Date(t.ts).getTime() < 30*24*60*60*1000);
-      if (!state.isAuth) return `<div class="card p-5">Log in to see your last 30 days of tickets.</div>`;
+      if (!state.isAuth) return `<div class="card p-5">Inicia sesión para ver tus últimas combinadas de 30 días.</div>`;
       return `
         <div class="flex items-center justify-between mb-3">
-          <h1 class="text-xl font-bold">My Tickets (Last 30 days)</h1>
-          <a class="btn" href="#/results">Go to Results</a>
+          <h1 class="text-xl font-bold">Mis combinadas (últimos 30 días)</h1>
+          <a class="btn" href="#/results">Ir a resultados</a>
         </div>
         <div class="card p-4">
           ${items.length ? `
@@ -1178,17 +1201,17 @@
                 <div class="flex items-center justify-between">
                   <div>
                     <div class="font-medium">${m ? `${m.home} vs ${m.away}` : t.matchId}</div>
-                    <div class="text-habla-600">1X2: ${t.combo.p1x2} · BTTS: ${t.combo.btts} · O2.5: ${t.combo.over25} · Red: ${t.combo.red} · Exact: ${t.combo.exact.h}-${t.combo.exact.a}</div>
-                    <div class="text-xs text-habla-500 mt-1">Submitted ${new Date(t.ts).toLocaleString()}</div>
+                    <div class="text-habla-600">1X2: ${p1x2Label(t.combo.p1x2)} · BTTS: ${yesNoLabel(t.combo.btts)} · O2.5: ${yesNoLabel(t.combo.over25)} · Roja: ${yesNoLabel(t.combo.red)} · Exacto: ${t.combo.exact.h}-${t.combo.exact.a}</div>
+                    <div class="text-xs text-habla-500 mt-1">Enviada ${new Date(t.ts).toLocaleString()}</div>
                   </div>
                   <div class="text-right">
-                    <div class="pill">Fee ${t.fee} Lukas</div>
-                    ${typeof t.points==='number' ? `<div class="mt-1 text-sm">Pts: <strong>${t.points}</strong> · Pos: ${t.position ?? '-'}</div>` : ``}
+                    <div class="pill">Costo ${t.fee} Lukas</div>
+                    ${typeof t.points==='number' ? `<div class="mt-1 text-sm">Pts: <strong>${t.points}</strong> · Pos.: ${t.position ?? '-'}</div>` : ``}
                   </div>
                 </div>
               </li>`;
             }).join('')}
-          </ul>` : `<div class="text-sm text-habla-600">No tickets yet.</div>`}
+          </ul>` : `<div class="text-sm text-habla-600">Aún no hay combinadas.</div>`}
         </div>
       `;
     }
@@ -1197,8 +1220,8 @@
       const finished = state.matches.filter(m=>m.status==="finished");
       return `
         <div class="flex items-center justify-between mb-3">
-          <h1 class="text-xl font-bold">Results</h1>
-          <a class="btn" href="#/matches">Back to Matches</a>
+          <h1 class="text-xl font-bold">Resultados</h1>
+          <a class="btn" href="#/matches">Volver a Partidos</a>
         </div>
         <div class="space-y-4">
           ${finished.length? finished.map(m => `
@@ -1206,17 +1229,17 @@
               <div class="flex items-center justify-between">
                 <div>
                   <div class="font-semibold">${m.home} vs ${m.away}</div>
-                  <div class="text-sm text-habla-600">Prize Pool: ${fmt(m.prizePool)} Lukas</div>
+                  <div class="text-sm text-habla-600">Pozo: ${fmt(m.prizePool)} Lukas</div>
                 </div>
-                <button class="btn" onclick="openLeaderboard('${m.id}')">View Leaderboard</button>
+                <button class="btn" onclick="openLeaderboard('${m.id}')">Ver tabla de posiciones</button>
               </div>
             </div>
-          `).join('') : `<div class="card p-4 text-sm text-habla-600">No finished matches yet.</div>`}
+          `).join('') : `<div class="card p-4 text-sm text-habla-600">Aún no hay partidos finalizados.</div>`}
         </div>
         <div class="card p-4 mt-6">
           <div class="flex items-center justify-between">
             <div>
-              <div class="font-semibold">Post-match tools</div>
+              <div class="font-semibold">Herramientas post-partido</div>
               <p class="text-xs text-habla-500">Liquida premios y revisa controles operativos cuando cierre un partido.</p>
             </div>
             <div class="flex flex-wrap gap-2">
@@ -1233,39 +1256,39 @@
     const staticViews = {
       "how-to-play": `
         <div class="prose max-w-none">
-          <h1>How to Play</h1>
+          <h1>Cómo jugar</h1>
           <ol>
             <li>Compra <strong>Lukas</strong> (on-ramp) y carga tu billetera.</li>
-            <li>Elige un <strong>partido</strong> con estado <em>Open</em> y crea tu <strong>combinada</strong> con 5 predicciones.</li>
+            <li>Elige un <strong>partido</strong> con estado <em>Abierto</em> y crea tu <strong>combinada</strong> con 5 predicciones.</li>
             <li>Al <em>kickoff</em> se cierran entradas y se <strong>revelan</strong> todas las combinadas.</li>
-            <li>Al finalizar, se <strong>califican</strong> los tickets, se publica el <strong>Leaderboard</strong> y se abonan los <strong>premios</strong> a tu Wallet.</li>
-            <li>Canjea tus Lukas en la <a href="#/store">Tienda</a>.</li>
+            <li>Al finalizar, se <strong>califican</strong> las combinadas, se publica la <strong>tabla de posiciones</strong> y se abonan los <strong>premios</strong> a tu billetera.</li>
+            <li>Canjea tus Lukas en la <a href="#/store">tienda</a>.</li>
           </ol>
         </div>
       `,
       "rules": `
         <div class="prose max-w-none">
-          <h1>Rules & Scoring</h1>
+          <h1>Reglas y puntajes</h1>
           <ul>
             <li>1X2 = 3 pts</li>
             <li>Ambos anotan = 2 pts</li>
-            <li>Over 2.5 = 2 pts</li>
+            <li>Más de 2.5 goles = 2 pts</li>
             <li>Tarjeta roja = 6 pts</li>
             <li>Marcador exacto = 8 pts</li>
           </ul>
           <p>Desempates: mayor acierto en marcador exacto; luego timestamp más temprano; si persiste, prorrateo del premio.</p>
         </div>
       `,
-      "faq": `<div class="prose max-w-none"><h1>FAQ</h1><p>Contenido de preguntas frecuentes (placeholder).</p></div>`,
-      "terms": `<div class="prose max-w-none"><h1>Terms of Service</h1><p>Placeholder.</p></div>`,
-      "privacy": `<div class="prose max-w-none"><h1>Privacy Policy</h1><p>Placeholder.</p></div>`,
-      "responsible": `<div class="prose max-w-none"><h1>Responsible Gaming</h1><p>Juega responsablemente.</p></div>`,
-      "help": `<div class="prose max-w-none"><h1>Help Center</h1><p>Escríbenos a soporte@habla.example.</p></div>`,
-      "contact": `<div class="prose max-w-none"><h1>Contact</h1><p>Formulario de contacto (placeholder).</p></div>`,
-      "report": `<div class="prose max-w-none"><h1>Report an Issue</h1><p>Describe el problema (placeholder).</p></div>`,
-      "profile": `<div class="prose max-w-none"><h1>My Profile</h1><p>Alias, avatar y preferencias (placeholder). Visible solo con login.</p></div>`,
-      "history": `<div class="prose max-w-none"><h1>History</h1><p>Usa "My Tickets" y "Wallet" para ver tu historial de 30 días.</p></div>`,
-      "transparency": `<div class="prose max-w-none"><h1>Transparency</h1><p>Las combinadas se publican tras kickoff. Ver "Transparency" dentro del detalle del partido.</p></div>`
+      "faq": `<div class="prose max-w-none"><h1>Preguntas frecuentes</h1><p>Contenido de preguntas frecuentes (contenido pendiente).</p></div>`,
+      "terms": `<div class="prose max-w-none"><h1>Términos del servicio</h1><p>Contenido pendiente.</p></div>`,
+      "privacy": `<div class="prose max-w-none"><h1>Política de privacidad</h1><p>Contenido pendiente.</p></div>`,
+      "responsible": `<div class="prose max-w-none"><h1>Juego responsable</h1><p>Juega responsablemente.</p></div>`,
+      "help": `<div class="prose max-w-none"><h1>Centro de ayuda</h1><p>Escríbenos a soporte@habla.example.</p></div>`,
+      "contact": `<div class="prose max-w-none"><h1>Contacto</h1><p>Formulario de contacto (contenido pendiente).</p></div>`,
+      "report": `<div class="prose max-w-none"><h1>Reportar un problema</h1><p>Describe el problema (contenido pendiente).</p></div>`,
+      "profile": `<div class="prose max-w-none"><h1>Mi perfil</h1><p>Alias, avatar y preferencias (contenido pendiente). Visible solo con login.</p></div>`,
+      "history": `<div class="prose max-w-none"><h1>Historial</h1><p>Usa "Mis combinadas" y "Billetera" para ver tu historial de 30 días.</p></div>`,
+      "transparency": `<div class="prose max-w-none"><h1>Transparencia</h1><p>Las combinadas se publican tras el kickoff. Consulta la sección de "Transparencia" dentro del detalle del partido.</p></div>`
     };
 
     // ---------- Router ----------
@@ -1298,7 +1321,7 @@
     function quickCreateTicket(){
       // open modal preselect on nearest open match
       const m = state.matches.find(x=>x.status==="open");
-      if (!m) { toast("No open matches right now", "warn"); return; }
+      if (!m) { toast("No hay partidos abiertos en este momento", "warn"); return; }
       createTicket(m.id);
     }
 
