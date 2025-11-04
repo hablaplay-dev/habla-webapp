@@ -181,6 +181,29 @@
       completed: "completado"
     }[value] || value);
 
+    const calculateAge = (dateStr) => {
+      if (!dateStr) return null;
+      const dob = new Date(dateStr);
+      if (Number.isNaN(dob.getTime())) return null;
+      const diff = Date.now() - dob.getTime();
+      const ageDate = new Date(diff);
+      return Math.abs(ageDate.getUTCFullYear() - 1970);
+    };
+
+    const userDisplayName = (user) => {
+      if (!user) return "";
+      if (user.nickname) return user.nickname;
+      if (user.firstName) return user.firstName.split(' ')[0];
+      return user.email?.split('@')[0] || "Usuario";
+    };
+
+    const formatDate = (dateStr, options={}) => {
+      if (!dateStr) return "-";
+      const date = new Date(dateStr);
+      if (Number.isNaN(date.getTime())) return "-";
+      return date.toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric', ...options });
+    };
+
     const toast = (msg, type="info") => {
       const colors = {
         info: "bg-white border-habla-300",
@@ -193,6 +216,17 @@
       t.textContent = msg;
       $("#toasts").appendChild(t);
       setTimeout(()=> t.remove(), 2600);
+    };
+
+    let userMenuCloseTimer = null;
+    let userMenuOutsideListenerBound = false;
+    let authModalMode = 'login';
+    let pendingAuthAction = '';
+    const setUserMenuOpen = (open) => {
+      const menu = document.getElementById('userMenu');
+      if (!menu) return;
+      menu.classList.toggle('hidden', !open);
+      menu.dataset.open = open ? 'true' : 'false';
     };
 
     const openModal = (html) => {
@@ -314,7 +348,25 @@
     });
 
     // Seed demo user for quick testing (not logged by default)
-    const demoUser = { id:"u1", name:"Gustavo", email:"gustavo@example.com" };
+    const demoUser = {
+      id: "u1",
+      email: "gustavo@example.com",
+      password: "demo1234",
+      firstName: "Gustavo",
+      lastName: "Ramírez",
+      nickname: "GusR",
+      birthDate: "1990-05-12",
+      country: "Perú",
+      acceptances: {
+        terms: true,
+        privacy: true,
+        responsible: true,
+        adult: true
+      },
+      emailVerified: true,
+      ageVerified: true,
+      createdAt: nowIso()
+    };
 
     function logEvent(type, detail={}){
       state.events.unshift({ id: uid(), type, detail, ts: nowIso() });
@@ -332,11 +384,13 @@
       if (!state.isAuth) {
         c.innerHTML = `<button class="btn" onclick="openLoginModal()">Iniciar sesión / Registrarse</button>`;
         $('#balancePill').classList.add('hidden');
+        setUserMenuOpen(false);
         return;
       }
+      const displayName = userDisplayName(state.user);
       c.innerHTML = `
-        <div class="relative inline-block">
-          <button class="btn" onclick="toggleUserMenu()">Hola, ${state.user.name} ▾</button>
+        <div class="relative inline-block" data-user-menu-wrapper>
+          <button type="button" class="btn" onclick="toggleUserMenu(event)">Hola, ${displayName} ▾</button>
           <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 card p-2 text-sm">
             <a href="#/profile" class="block px-3 py-2 rounded-md hover:bg-habla-100">Perfil</a>
             <a href="#/history" class="block px-3 py-2 rounded-md hover:bg-habla-100">Historial</a>
@@ -347,11 +401,35 @@
       `;
       $('#lukasBalance').textContent = fmt(state.wallet.lukas);
       $('#balancePill').classList.remove('hidden');
+
+      const wrapper = c.querySelector('[data-user-menu-wrapper]');
+      if (wrapper) {
+        wrapper.onmouseenter = () => {
+          clearTimeout(userMenuCloseTimer);
+          toggleUserMenu(null, true);
+        };
+        wrapper.onmouseleave = () => {
+          clearTimeout(userMenuCloseTimer);
+          userMenuCloseTimer = setTimeout(() => toggleUserMenu(null, false), 150);
+        };
+      }
+
+      if (!userMenuOutsideListenerBound) {
+        document.addEventListener('click', (event) => {
+          if (!event.target.closest('[data-user-menu-wrapper]')) {
+            toggleUserMenu(null, false);
+          }
+        });
+        userMenuOutsideListenerBound = true;
+      }
     }
 
-    function toggleUserMenu() {
+    function toggleUserMenu(ev, forceState) {
+      if (ev) ev.stopPropagation();
       const m = document.getElementById('userMenu');
-      if (m) m.classList.toggle('hidden');
+      if (!m) return;
+      const shouldOpen = typeof forceState === 'boolean' ? forceState : m.classList.contains('hidden');
+      setUserMenuOpen(shouldOpen);
     }
     function toggleMobileMenu(){
       const m = document.getElementById('mobileMenu');
@@ -359,23 +437,139 @@
     }
 
     function openLoginModal(actionName){
-      const modal = openModal(`
+      authModalMode = 'login';
+      pendingAuthAction = actionName || '';
+      openModal(`
         <div class="flex items-start justify-between">
           <h2 class="text-lg font-bold">Iniciar sesión / Registrarse</h2>
           <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
         </div>
         <p class="mt-2 text-sm text-habla-600">Inicia sesión para participar en torneos, canjear premios y usar tu billetera.</p>
-        <div class="mt-4 space-y-3">
-          <input id="loginEmail" class="input" placeholder="Correo electrónico"/>
-          <button class="btn-primary w-full" onclick="demoLogin()">Continuar</button>
-          <button class="btn w-full" onclick="guestBrowse()">Seguir como visitante</button>
+        <div class="mt-4">
+          <div id="authTabs" class="flex gap-2 text-sm">
+            <button type="button" class="flex-1 btn" data-auth-tab="login" onclick="switchAuthModal('login')">Iniciar sesión</button>
+            <button type="button" class="flex-1 btn" data-auth-tab="register" onclick="switchAuthModal('register')">Crear cuenta</button>
+          </div>
+          <div id="authModalBody" class="mt-4"></div>
         </div>
-        ${actionName ? `<p class="mt-3 text-xs text-habla-500">Requerido para: <strong>${actionName}</strong></p>` : ``}
+        <p id="authActionRequirement" class="mt-3 text-xs text-habla-500 ${actionName ? '' : 'hidden'}">${actionName ? `Requerido para: <strong>${actionName}</strong>` : ''}</p>
       `);
+      renderAuthModalBody();
     }
+
+    function switchAuthModal(mode){
+      authModalMode = mode;
+      renderAuthModalBody();
+    }
+
+    function renderAuthModalBody(){
+      const body = document.getElementById('authModalBody');
+      if (!body) return;
+      if (authModalMode === 'login') {
+        body.innerHTML = `
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-habla-600 mb-1">Correo electrónico</label>
+              <input id="loginEmail" class="input" type="email" placeholder="tu-correo@ejemplo.com" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-habla-600 mb-1">Contraseña</label>
+              <input id="loginPassword" class="input" type="password" placeholder="Tu contraseña" />
+            </div>
+            <button class="btn-primary w-full" onclick="demoLogin()">Iniciar sesión (demo)</button>
+            <button class="btn w-full" onclick="guestBrowse()">Seguir como visitante</button>
+            <p class="text-xs text-habla-500">Modo demostración: ingresa cualquier correo y contraseña para acceder con un usuario de prueba.</p>
+          </div>
+        `;
+      } else {
+        body.innerHTML = `
+          <form id="registerForm" class="space-y-3" onsubmit="registerUser(event)">
+            <div class="grid md:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-habla-600 mb-1">Correo electrónico</label>
+                <input id="registerEmail" name="email" class="input" type="email" required placeholder="tu-correo@ejemplo.com" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-habla-600 mb-1">Contraseña</label>
+                <input id="registerPassword" name="password" class="input" type="password" required placeholder="Mínimo 8 caracteres" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-habla-600 mb-1">Nombres</label>
+                <input id="registerFirstName" name="firstName" class="input" required placeholder="Tus nombres" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-habla-600 mb-1">Apellidos</label>
+                <input id="registerLastName" name="lastName" class="input" required placeholder="Tus apellidos" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-habla-600 mb-1">Nickname / Nombre visible</label>
+                <input id="registerNickname" name="nickname" class="input" required placeholder="Ej. Futbolero" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-habla-600 mb-1">Fecha de nacimiento</label>
+                <input id="registerBirthDate" name="birthDate" class="input" type="date" required />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-habla-600 mb-1">País de residencia</label>
+                <select id="registerCountry" name="country" class="input" required>
+                  <option value="">Selecciona un país</option>
+                  <option>Argentina</option>
+                  <option>Chile</option>
+                  <option>Colombia</option>
+                  <option>Ecuador</option>
+                  <option>México</option>
+                  <option>Perú</option>
+                  <option>Uruguay</option>
+                  <option>Otro</option>
+                </select>
+              </div>
+            </div>
+            <div class="space-y-2 text-sm">
+              <label class="flex items-start gap-2">
+                <input type="checkbox" id="acceptTerms" required class="mt-1" />
+                <span>Acepto los <a href="#/terms" class="link">Términos y Condiciones</a>.</span>
+              </label>
+              <label class="flex items-start gap-2">
+                <input type="checkbox" id="acceptPrivacy" required class="mt-1" />
+                <span>Acepto la <a href="#/privacy" class="link">Política de Privacidad</a>.</span>
+              </label>
+              <label class="flex items-start gap-2">
+                <input type="checkbox" id="acceptResponsible" required class="mt-1" />
+                <span>Acepto la <a href="#/responsible" class="link">Política de Juego Responsable</a>.</span>
+              </label>
+              <label class="flex items-start gap-2">
+                <input type="checkbox" id="acceptAdult" required class="mt-1" />
+                <span>Declaro ser mayor de 18 años.</span>
+              </label>
+            </div>
+            <button type="submit" class="btn-primary w-full">Crear cuenta</button>
+          </form>
+        `;
+      }
+
+      $$('#authTabs [data-auth-tab]').forEach(btn => {
+        btn.classList.toggle('btn-primary', btn.dataset.authTab === authModalMode);
+      });
+
+      const requirement = document.getElementById('authActionRequirement');
+      if (requirement) {
+        requirement.classList.toggle('hidden', !pendingAuthAction);
+        requirement.innerHTML = pendingAuthAction ? `Requerido para: <strong>${pendingAuthAction}</strong>` : '';
+      }
+    }
+
     function demoLogin(){
       state.isAuth = true;
-      state.user = demoUser;
+      state.user = { ...demoUser };
+      const emailInput = document.getElementById('loginEmail');
+      const passInput = document.getElementById('loginPassword');
+      if (emailInput && emailInput.value) {
+        state.user.email = emailInput.value.trim().toLowerCase();
+      }
+      if (passInput && passInput.value) {
+        state.user.password = passInput.value;
+      }
+      state.user.lastLoginAt = nowIso();
       if (state.wallet.lukas === 0) {
         // Welcome credit (demo)
         creditWallet(2450, "welcome_bonus");
@@ -389,6 +583,123 @@
     function guestBrowse(){
       $('#modalRoot').innerHTML = "";
       toast("Exploras como invitado. Inicia sesión para unirte a los torneos.");
+    }
+    function registerUser(event){
+      if (event) event.preventDefault();
+      const form = document.getElementById('registerForm');
+      if (!form) return;
+      const email = form.email.value.trim().toLowerCase();
+      const password = form.password.value.trim();
+      const firstName = form.firstName.value.trim();
+      const lastName = form.lastName.value.trim();
+      const nickname = form.nickname.value.trim();
+      const birthDate = form.birthDate.value;
+      const country = form.country.value;
+      const acceptances = {
+        terms: document.getElementById('acceptTerms').checked,
+        privacy: document.getElementById('acceptPrivacy').checked,
+        responsible: document.getElementById('acceptResponsible').checked,
+        adult: document.getElementById('acceptAdult').checked
+      };
+
+      if (!email || !password || !firstName || !lastName || !nickname || !birthDate || !country) {
+        toast('Completa todos los campos requeridos.', 'warn');
+        return;
+      }
+      if (password.length < 8) {
+        toast('La contraseña debe tener al menos 8 caracteres.', 'warn');
+        return;
+      }
+      if (Object.values(acceptances).some(v => !v)) {
+        toast('Debes aceptar todas las políticas y declaraciones.', 'warn');
+        return;
+      }
+
+      const age = calculateAge(birthDate);
+      const ageVerified = typeof age === 'number' && age >= 18;
+      if (!ageVerified) {
+        toast('No pudimos verificar que seas mayor de edad. Revisa tus datos.', 'warn');
+      }
+
+      state.isAuth = true;
+      state.user = {
+        id: uid(),
+        email,
+        password,
+        firstName,
+        lastName,
+        nickname,
+        birthDate,
+        country,
+        acceptances,
+        emailVerified: false,
+        ageVerified,
+        createdAt: nowIso(),
+        lastLoginAt: nowIso()
+      };
+      state.wallet.lukas = 0;
+      state.wallet.movements = [];
+      renderAuthArea();
+      toast('¡Cuenta creada! Revisa tu correo para verificar la cuenta.', 'success');
+      logEvent('Auth.Register', { userId: state.user.id, email: state.user.email, country: state.user.country });
+      if (!ageVerified) {
+        recordRisk({ service: 'Auth', reason: 'Edad no verificada', birthDate });
+      }
+      $('#modalRoot').innerHTML = "";
+      router();
+    }
+
+    function openPasswordChangeDialog(){
+      if (!state.isAuth || !state.user) {
+        openLoginModal('cambiar tu contraseña');
+        return;
+      }
+      openModal(`
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-bold">Cambiar contraseña</h2>
+          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
+        </div>
+        <form class="mt-4 space-y-3" onsubmit="changePassword(event)">
+          <div>
+            <label class="block text-xs font-semibold text-habla-600 mb-1">Contraseña actual</label>
+            <input id="currentPassword" type="password" class="input" placeholder="Tu contraseña actual" required />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-habla-600 mb-1">Nueva contraseña</label>
+            <input id="newPassword" type="password" class="input" placeholder="Mínimo 8 caracteres" required />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-habla-600 mb-1">Confirma la nueva contraseña</label>
+            <input id="confirmNewPassword" type="password" class="input" placeholder="Repite la nueva contraseña" required />
+          </div>
+          <button type="submit" class="btn-primary w-full">Actualizar contraseña</button>
+        </form>
+      `);
+    }
+
+    function changePassword(event){
+      if (event) event.preventDefault();
+      if (!state.isAuth || !state.user) return;
+      const current = document.getElementById('currentPassword');
+      const next = document.getElementById('newPassword');
+      const confirm = document.getElementById('confirmNewPassword');
+      if (!current || !next || !confirm) return;
+      if (state.user.password && current.value !== state.user.password) {
+        toast('La contraseña actual no coincide.', 'error');
+        return;
+      }
+      if (next.value.length < 8) {
+        toast('La nueva contraseña debe tener al menos 8 caracteres.', 'warn');
+        return;
+      }
+      if (next.value !== confirm.value) {
+        toast('La confirmación no coincide.', 'warn');
+        return;
+      }
+      state.user.password = next.value;
+      toast('¡Contraseña actualizada con éxito!', 'success');
+      logEvent('Auth.PasswordChanged', { userId: state.user.id });
+      $('#modalRoot').innerHTML = "";
     }
     function logout(){
       state.isAuth = false;
@@ -738,7 +1049,7 @@
       }
 
       const ticket = {
-        id: uid(), userId: state.user.id, userName: state.user.name, matchId,
+        id: uid(), userId: state.user.id, userName: userDisplayName(state.user), matchId,
         fee: m.entryFee, combo, hash, ts: nowIso()
       };
       state.tickets.unshift(ticket);
@@ -1252,6 +1563,106 @@
       `;
     }
 
+    function profileView(){
+      if (!state.isAuth || !state.user) {
+        return `<div class="card p-5">Inicia sesión para ver y actualizar tu perfil.</div>`;
+      }
+      const u = state.user;
+      const age = calculateAge(u.birthDate);
+      const verificationBadge = (ok, okLabel='Verificado', pendingLabel='Pendiente') => {
+        const baseClass = ok ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        const text = ok ? okLabel : pendingLabel;
+        return `<span class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${baseClass}">${text}</span>`;
+      };
+      const acceptancesList = [
+        { key: 'terms', label: 'Términos y Condiciones' },
+        { key: 'privacy', label: 'Política de Privacidad' },
+        { key: 'responsible', label: 'Política de Juego Responsable' },
+        { key: 'adult', label: 'Declaración de ser mayor de 18 años' }
+      ];
+
+      return `
+        <div class="space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h1 class="text-xl font-bold">Mi perfil</h1>
+              <p class="text-sm text-habla-600">Consulta tu información y el estado de tus verificaciones.</p>
+            </div>
+            <button class="btn" onclick="openPasswordChangeDialog()">Cambiar contraseña</button>
+          </div>
+
+          <div class="grid gap-4 lg:grid-cols-[2fr,1fr]">
+            <div class="card p-5 space-y-4">
+              <h2 class="text-lg font-semibold">Datos personales</h2>
+              <div class="grid md:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <div class="text-xs uppercase tracking-wide text-habla-500">Correo electrónico</div>
+                  <div class="font-medium">${u.email}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wide text-habla-500">Nickname / Nombre visible</div>
+                  <div class="font-medium">${u.nickname}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wide text-habla-500">Nombres</div>
+                  <div>${u.firstName}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wide text-habla-500">Apellidos</div>
+                  <div>${u.lastName}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wide text-habla-500">Fecha de nacimiento</div>
+                  <div>${formatDate(u.birthDate)}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wide text-habla-500">Edad</div>
+                  <div>${typeof age === 'number' ? `${age} años` : 'Sin calcular'}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wide text-habla-500">País de residencia</div>
+                  <div>${u.country}</div>
+                </div>
+                <div>
+                  <div class="text-xs uppercase tracking-wide text-habla-500">ID de jugador</div>
+                  <div>${u.id}</div>
+                </div>
+              </div>
+            </div>
+            <div class="card p-5 space-y-3">
+              <h2 class="text-lg font-semibold">Verificaciones</h2>
+              <div class="flex items-center justify-between text-sm">
+                <span>Correo electrónico</span>
+                ${verificationBadge(!!u.emailVerified)}
+              </div>
+              <p class="text-xs text-habla-500 ${u.emailVerified ? '' : 'text-yellow-700'}">${u.emailVerified ? 'Tu correo ya fue verificado.' : 'Pendiente de verificación. Revisa tu bandeja para confirmar tu correo.'}</p>
+              <div class="flex items-center justify-between text-sm">
+                <span>Mayoría de edad</span>
+                ${verificationBadge(!!u.ageVerified, 'Verificada', 'Pendiente')}
+              </div>
+              <p class="text-xs text-habla-500 ${u.ageVerified ? '' : 'text-yellow-700'}">${u.ageVerified ? 'Se confirmó que eres mayor de 18 años.' : 'Revisaremos tus datos para confirmar tu mayoría de edad.'}</p>
+            </div>
+          </div>
+
+          <div class="card p-5 space-y-3">
+            <h2 class="text-lg font-semibold">Aceptaciones</h2>
+            <ul class="space-y-2 text-sm">
+              ${acceptancesList.map(item => {
+                const accepted = !!(u.acceptances && u.acceptances[item.key]);
+                return `
+                  <li class="flex items-start justify-between gap-3">
+                    <span>${item.label}</span>
+                    ${verificationBadge(accepted, 'Aceptado', 'Pendiente')}
+                  </li>
+                `;
+              }).join('')}
+            </ul>
+            <div class="text-xs text-habla-500">Fecha de registro: ${formatDate(u.createdAt || u.lastLoginAt)}</div>
+          </div>
+        </div>
+      `;
+    }
+
     // ---------- Static pages ----------
     const staticViews = {
       "how-to-play": `
@@ -1286,7 +1697,6 @@
       "help": `<div class="prose max-w-none"><h1>Centro de ayuda</h1><p>Escríbenos a soporte@habla.example.</p></div>`,
       "contact": `<div class="prose max-w-none"><h1>Contacto</h1><p>Formulario de contacto (contenido pendiente).</p></div>`,
       "report": `<div class="prose max-w-none"><h1>Reportar un problema</h1><p>Describe el problema (contenido pendiente).</p></div>`,
-      "profile": `<div class="prose max-w-none"><h1>Mi perfil</h1><p>Alias, avatar y preferencias (contenido pendiente). Visible solo con login.</p></div>`,
       "history": `<div class="prose max-w-none"><h1>Historial</h1><p>Usa "Mis combinadas" y "Billetera" para ver tu historial de 30 días.</p></div>`,
       "transparency": `<div class="prose max-w-none"><h1>Transparencia</h1><p>Las combinadas se publican tras el kickoff. Consulta la sección de "Transparencia" dentro del detalle del partido.</p></div>`
     };
@@ -1304,6 +1714,7 @@
         case "results": html = resultsView(); break;
         case "store": html = storeView(); break;
         case "wallet": html = walletView(); break;
+        case "profile": html = profileView(); break;
         default:
           html = staticViews[route] || matchesView();
       }
