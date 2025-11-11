@@ -23,6 +23,15 @@ La app es navegable como visitante (sin registro), pero participar en torneos, h
 - Vistas clave: Matches, Match Detail (Transparencia/Leaderboard), Create Ticket, Wallet/Movements, Prize Store, How to Play, FAQ.
 - Sin conexión a backend (mock in-memory), preparado para reemplazar llamadas por APIs reales.
 - Visitantes pueden navegar todo; acciones sensibles (crear ticket, top-up, canjear) piden login.
+- Formulario de Registro (UI); Campos visibles y obligatorios:
+  -  Correo electrónico
+  -  Contraseña
+  -  Nombres
+  -  Apellidos
+  -  Nickname /Nombre visible
+  -  Fecha de Nacimiento
+  -  País de Residencia
+  -  Aceptaciones (checkboxes): Términos y Condiciones, Política de Privacidad, Política de Juego Responsable, Declaración "Soy mayor de 18 años"
 
 ## Diagrama (Mermaid) — Microservicios y flujos
 >**Nota**: Este diagrama refleja solamente los microservicios definidos para Habla! y sus conexiones.
@@ -291,6 +300,14 @@ class FE_Router,FE_Login,FE_TopUp,FE_Create,FE_Match,FE_Store,FE_Wallet,FE_Toast
 class EB bus;
 class A_Evt,W_evtC,W_evtD,Pay_evtI,Pay_evtS,C_evt,S_evt,L_evt,LI_evt,ST_evt,F_evt,RF_evt evt;
 ```
+## Acciones del Usuario en el app
+>**Nota**: En esta sección se describe las acciones que el jugador va a realizar dentro del app como parte de su experiencia de juego.
+
+1) **Registro de Cuenta**
+   **Objetivo**: crear la cuenta y el perfil mínimo para permitir compras de Lukas y participación en torneos, dejando pendiente la verificación de correo y de mayoría de edad para el momento del canje.
+
+   - Campos de registro (obligatorios): Correo electrónico, constraseña, Nombres, Apellidos, Nickname / Nombre visible, Fecha de Nacimiento, País de Residencia (código ISO-2), Aceptaciones (Términos y Condiciones, Política de Privacidad, Política de Juego Responsable, Declaración de ser mayor de 18 años
+   
 
 ## Microservicios (responsabilidades, interfaces y eventos)
 
