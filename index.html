@@ -280,7 +280,22 @@
     const state = {
       isAuth: false,
       user: null,
-      wallet: { lukas: 0, movements: [] }, // movements: {id, type:credit|debit, amount, note, ts}
+      wallet: {
+        lukas: 12450,
+        cash: 5600,
+        movements: [
+          { id: uid(), type: "credit", amount: 4200, note: "payout:torneo_m3", ts: nowIso() },
+          { id: uid(), type: "debit", amount: 1800, note: "redeem:gift_card", ts: nowIso() },
+          { id: uid(), type: "credit", amount: 3000, note: "payment_settled:tarjeta", ts: nowIso() },
+        ], // movements: {id, type:credit|debit, amount, note, ts}
+        cashMovements: [
+          { id: uid(), type: "credit", amount: 3200, method: "Tarjeta", status: "settled", ts: nowIso(), note: "PSP autorizado" },
+          { id: uid(), type: "credit", amount: 2400, method: "Yape/Plin", status: "settled", ts: nowIso(), note: "QR escaneado" },
+        ], // cashMovements: {id, type:credit|debit, amount, method, status, ts, note}
+        withdrawals: [
+          { id: uid(), amount: 2500, status: "pending_review", destination: "Cuenta bancaria verificada", ts: nowIso() },
+        ] // withdrawals: {id, amount, status, destination, ts}
+      },
       tickets: seedTickets.map(seed => ({
         ...seed,
         id: uid(),
@@ -638,7 +653,10 @@
         lastLoginAt: nowIso()
       };
       state.wallet.lukas = 0;
+      state.wallet.cash = 0;
       state.wallet.movements = [];
+      state.wallet.cashMovements = [];
+      state.wallet.withdrawals = [];
       renderAuthArea();
       toast('¡Cuenta creada! Revisa tu correo para verificar la cuenta.', 'success');
       logEvent('Auth.Register', { userId: state.user.id, email: state.user.email, country: state.user.country });
@@ -748,6 +766,16 @@
       if (!amount || amount<100) { toast("Ingresa un monto válido", "warn"); return; }
       if (!state.isAuth) { openLoginModal("recargar Lukas"); return; }
       logEvent("Payment.Initiated", { amount });
+      state.wallet.cash += amount;
+      state.wallet.cashMovements.unshift({
+        id: uid(),
+        type: "credit",
+        amount,
+        method: "Yape/Plin o Tarjeta",
+        status: "settled",
+        note: "Pago confirmado (on-ramp)",
+        ts: nowIso()
+      });
       creditWallet(amount, "payment_settled");
       logEvent("Payment.Settled", { amount });
       if (amount >= 10000) {
@@ -1462,7 +1490,21 @@
 
     // ---------- Wallet / History ----------
     function walletView(){
-      const rows = state.wallet.movements.map(m => `
+      if (!state.isAuth) {
+        return `
+          <div class="card p-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h1 class="text-xl font-bold">Billetera y Pagos</h1>
+                <p class="text-sm text-habla-600">Inicia sesión para ver tus saldos, registrar recargas y seguir la trazabilidad de tus Lukas y dinero real.</p>
+              </div>
+              <button class="btn-primary" onclick="openLoginModal('administrar tu billetera')">Ingresar</button>
+            </div>
+          </div>
+        `;
+      }
+
+      const lukasRows = state.wallet.movements.map(m => `
         <tr class="border-t">
           <td class="py-2">${new Date(m.ts).toLocaleString()}</td>
           <td class="text-habla-600">${m.note}</td>
@@ -1471,24 +1513,151 @@
           </td>
         </tr>
       `).join('');
+
+      const cashRows = state.wallet.cashMovements.map(m => `
+        <tr class="border-t">
+          <td class="py-2">${new Date(m.ts).toLocaleString()}</td>
+          <td class="text-habla-600">${m.method} · ${m.note}</td>
+          <td class="text-right">${m.status}</td>
+          <td class="${m.type==='credit'?'text-green-700':'text-red-700'} font-semibold text-right">${m.type==='credit' ? '+' : '-'}${fmt(m.amount)}</td>
+        </tr>
+      `).join('');
+
+      const withdrawalRows = state.wallet.withdrawals.map(w => `
+        <tr class="border-t">
+          <td class="py-2">${new Date(w.ts).toLocaleString()}</td>
+          <td class="text-habla-600">${w.destination}</td>
+          <td class="text-right">${fmt(w.amount)} Lukas</td>
+          <td class="text-right capitalize">${w.status.replace('_',' ')}</td>
+        </tr>
+      `).join('');
+
+      const verification = state.user?.ageVerified && state.user?.emailVerified ? 'Verificado' : 'Datos pendientes';
+
       return `
-        <div class="card p-5">
-          <div class="flex items-center justify-between">
-            <div>
-              <div class="text-sm text-habla-600">Saldo actual</div>
-              <div class="text-3xl font-black">${fmt(state.wallet.lukas)} Lukas</div>
+        <div class="flex items-start justify-between mb-4">
+          <div>
+            <h1 class="text-2xl font-black">Billetera y Pagos</h1>
+            <p class="text-sm text-habla-600">Recarga rápido con Yape/Plin o tarjeta y administra tus Lukas (moneda in-app) con claridad.</p>
+          </div>
+          <div class="hidden sm:flex gap-2">
+            <button class="btn" onclick="openTopUp()">Recargar Lukas</button>
+            <a class="btn" href="#/store">Canjear en tienda</a>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="card p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm text-habla-600">Saldo disponible en Lukas</div>
+                <div class="text-3xl font-black">${fmt(state.wallet.lukas)} Lukas</div>
+              </div>
+              <span class="pill">Activas</span>
             </div>
-            <div class="space-x-2">
-              <button class="btn" onclick="openTopUp()">Recargar</button>
-              <a class="btn" href="#/store">Ir a la tienda</a>
+            <p class="text-sm text-habla-600">Solo las Lukas sirven para comprar tickets y canjear premios. Las Lukas compradas no son reembolsables.</p>
+            <div class="flex gap-2">
+              <button class="btn-primary flex-1" onclick="openTopUp()">Recargar</button>
+              <a class="btn flex-1" href="#/store">Tienda</a>
+            </div>
+          </div>
+
+          <div class="card p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm text-habla-600">Dinero real registrado</div>
+                <div class="text-3xl font-black">S/ ${fmt(state.wallet.cash)}</div>
+              </div>
+              <span class="pill bg-orange-100 text-orange-700">No retirable</span>
+            </div>
+            <p class="text-sm text-habla-600">Aquí ves cada pago que hiciste con Yape/Plin o tarjeta. Sirve para que tengas trazabilidad de tus recargas; el saldo no se usa directamente en juegos.</p>
+            <ul class="text-xs text-habla-600 list-disc list-inside">
+              <li>Se usa solo para convertir en Lukas.</li>
+              <li>Las recargas no se pueden retirar.</li>
+            </ul>
+          </div>
+
+          <div class="card p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm text-habla-600">Identidad y retiros</div>
+                <div class="text-xl font-bold">${verification}</div>
+              </div>
+              <span class="pill">KYC</span>
+            </div>
+            <p class="text-sm text-habla-600">Los retiros de premios requieren cuenta verificada (documento + método de pago). Si falta un dato, tu solicitud quedará en espera.</p>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="card p-2 bg-habla-50 border-dashed">Email: ${state.user?.emailVerified ? 'verificado' : 'pendiente'}</div>
+              <div class="card p-2 bg-habla-50 border-dashed">Identidad: ${state.user?.ageVerified ? 'ok' : 'revisar'}</div>
             </div>
           </div>
         </div>
+
         <div class="card p-5 mt-6">
-          <div class="font-semibold mb-2">Movimientos de la billetera</div>
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <div class="font-semibold">Recarga rápida de Lukas</div>
+              <p class="text-sm text-habla-600">Recarga en tres pasos: elige monto, paga con QR o tarjeta y espera la confirmación para ver tus Lukas al instante.</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn" onclick="performTopUp(500)">+500</button>
+              <button class="btn" onclick="performTopUp(1000)">+1,000</button>
+              <button class="btn" onclick="openTopUp()">Otro monto</button>
+            </div>
+          </div>
+          <div class="grid sm:grid-cols-3 gap-3 mt-4 text-sm">
+            <div class="card p-3 bg-habla-50">
+              <div class="font-semibold">Yape / Plin</div>
+              <p class="text-habla-600">Escanea el QR desde tu app y confirma el pago. Es la opción más rápida si estás en el celular.</p>
+            </div>
+            <div class="card p-3 bg-habla-50">
+              <div class="font-semibold">Tarjeta (3DS opcional)</div>
+              <p class="text-habla-600">Ingresa los datos de tu tarjeta en el checkout seguro y confirma. Puedes guardar la tarjeta para futuras recargas.</p>
+            </div>
+            <div class="card p-3 bg-habla-50">
+              <div class="font-semibold">Reglas</div>
+              <ul class="list-disc list-inside text-habla-600">
+                <li>Lukas compradas no se devuelven.</li>
+                <li>El dinero real no se retira; solo genera Lukas para premios y tickets.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-5 gap-4 mt-6">
+          <div class="md:col-span-3 card p-5">
+            <div class="flex items-center justify-between mb-2">
+              <div class="font-semibold">Movimientos de Lukas</div>
+              <span class="text-xs text-habla-500">Historial de compras, juegos y canjes</span>
+            </div>
+            <table class="w-full text-sm">
+              <thead><tr class="text-left text-habla-600"><th class="py-2">Fecha</th><th>Nota</th><th class="text-right">Monto</th></tr></thead>
+              <tbody>${lukasRows || `<tr><td class="py-3 text-habla-600" colspan="3">Aún no hay movimientos.</td></tr>`}</tbody>
+            </table>
+          </div>
+
+          <div class="md:col-span-2 card p-5">
+            <div class="flex items-center justify-between mb-2">
+              <div class="font-semibold">Registro de dinero real</div>
+              <span class="text-xs text-habla-500">Recargas hechas con Yape/Plin o tarjeta</span>
+            </div>
+            <table class="w-full text-sm">
+              <thead><tr class="text-left text-habla-600"><th class="py-2">Fecha</th><th>Método</th><th class="text-right">Estado</th><th class="text-right">Monto</th></tr></thead>
+              <tbody>${cashRows || `<tr><td class="py-3 text-habla-600" colspan="4">Sin recargas registradas.</td></tr>`}</tbody>
+            </table>
+            <p class="text-xs text-habla-500 mt-2">Usa este historial para confirmar tus pagos. Solo las Lukas se usan como medio de pago dentro de Habla!.</p>
+          </div>
+        </div>
+
+        <div class="card p-5 mt-6">
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-semibold">Retiros de premios</div>
+            <span class="text-xs text-habla-500">Requiere verificación completa</span>
+          </div>
+          <p class="text-sm text-habla-600 mb-3">Solo se procesan retiros provenientes de premios liquidados en Lukas. El dinero real no es retirable; los canjes se hacen en la Tienda. Si faltan datos de verificación, tu retiro pasará a revisión.</p>
           <table class="w-full text-sm">
-            <thead><tr class="text-left text-habla-600"><th class="py-2">Fecha</th><th>Nota</th><th class="text-right">Monto</th></tr></thead>
-            <tbody>${rows || `<tr><td class="py-3 text-habla-600" colspan="3">Aún no hay movimientos.</td></tr>`}</tbody>
+            <thead><tr class="text-left text-habla-600"><th class="py-2">Fecha</th><th>Destino</th><th class="text-right">Monto</th><th class="text-right">Estado</th></tr></thead>
+            <tbody>${withdrawalRows || `<tr><td class="py-3 text-habla-600" colspan="4">Aún no has solicitado retiros.</td></tr>`}</tbody>
           </table>
         </div>
       `;
