@@ -172,6 +172,11 @@
       Draw: "Empate",
       Away: "Visita"
     }[value] || value);
+    const methodLabel = (value) => ({
+      yape: "Yape/Plin",
+      card: "Tarjeta",
+      bank: "Transferencia rápida"
+    }[value] || value);
     const storeTypeLabel = (value) => ({
       physical: "físico",
       digital: "digital"
@@ -282,16 +287,15 @@
       user: null,
       wallet: {
         lukas: 12450,
-        cash: 5600,
         movements: [
           { id: uid(), type: "credit", amount: 4200, note: "payout:torneo_m3", ts: nowIso() },
           { id: uid(), type: "debit", amount: 1800, note: "redeem:gift_card", ts: nowIso() },
-          { id: uid(), type: "credit", amount: 3000, note: "payment_settled:tarjeta", ts: nowIso() },
+          { id: uid(), type: "credit", amount: 3000, note: "recarga:tarjeta", ts: nowIso() },
         ], // movements: {id, type:credit|debit, amount, note, ts}
-        cashMovements: [
-          { id: uid(), type: "credit", amount: 3200, method: "Tarjeta", status: "settled", ts: nowIso(), note: "PSP autorizado" },
-          { id: uid(), type: "credit", amount: 2400, method: "Yape/Plin", status: "settled", ts: nowIso(), note: "QR escaneado" },
-        ], // cashMovements: {id, type:credit|debit, amount, method, status, ts, note}
+        topUps: [
+          { id: uid(), amount: 3200, method: "card", status: "acreditado", ts: nowIso(), reference: "PSP autorizado" },
+          { id: uid(), amount: 2400, method: "yape", status: "acreditado", ts: nowIso(), reference: "QR escaneado" },
+        ], // topUps: {id, amount, method, status, ts, reference}
         withdrawals: [
           { id: uid(), amount: 2500, status: "pending_review", destination: "Cuenta bancaria verificada", ts: nowIso() },
         ] // withdrawals: {id, amount, status, destination, ts}
@@ -652,11 +656,10 @@
         createdAt: nowIso(),
         lastLoginAt: nowIso()
       };
-      state.wallet.lukas = 0;
-      state.wallet.cash = 0;
-      state.wallet.movements = [];
-      state.wallet.cashMovements = [];
-      state.wallet.withdrawals = [];
+        state.wallet.lukas = 0;
+        state.wallet.movements = [];
+        state.wallet.topUps = [];
+        state.wallet.withdrawals = [];
       renderAuthArea();
       toast('¡Cuenta creada! Revisa tu correo para verificar la cuenta.', 'success');
       logEvent('Auth.Register', { userId: state.user.id, email: state.user.email, country: state.user.country });
@@ -729,6 +732,7 @@
     }
 
     // ---------- Wallet / Payments ----------
+    let topUpDraft = { method: 'yape', amount: 500 };
     function creditWallet(amount, note){
       state.wallet.lukas += amount;
       state.wallet.movements.unshift({ id:uid(), type:"credit", amount, note, ts: nowIso() });
@@ -743,41 +747,108 @@
       logEvent("Wallet.DebitPosted", { amount, note });
       return true;
     }
-    function openTopUp(){
-      const modal = openModal(`
-        <div class="flex items-start justify-between">
-          <h2 class="text-lg font-bold">Recargar Lukas</h2>
-          <button class="btn" onclick="this.closest('.fixed').remove()">✕</button>
-        </div>
-        <div class="mt-4 grid grid-cols-3 gap-3">
-          ${[500,1000,2500,5000].map(v => `
-            <button class="btn" onclick="performTopUp(${v})">${fmt(v)} Lukas</button>
-          `).join('')}
-        </div>
-        <div class="mt-4">
-          <input id="customTopUp" class="input" type="number" min="100" step="100" placeholder="Monto personalizado (mín 100)"/>
-          <button class="btn-primary mt-2 w-full" onclick="performTopUp(parseInt(document.getElementById('customTopUp').value||0))">Pagar y acreditar</button>
-          <p class="text-xs text-habla-500 mt-2">Simulación de checkout (Pagos → Billetera).</p>
-        </div>
-      `);
+    function selectTopUpMethod(method, containerId='topUpInline'){
+      topUpDraft.method = method;
+      updateTopUpSummary(containerId);
+    }
+    function setTopUpAmount(amount, containerId='topUpInline'){
+      topUpDraft.amount = amount;
+      const container = document.getElementById(containerId);
+      if (container) {
+        const input = container.querySelector('.topup-amount-input');
+        if (input) input.value = amount || '';
+      }
+      updateTopUpSummary(containerId);
+    }
+    function updateTopUpSummary(containerId='topUpInline'){
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const amountInput = container.querySelector('.topup-amount-input');
+      const amount = parseInt(amountInput?.value || topUpDraft.amount || 0, 10);
+      topUpDraft.amount = amount;
+      if (amountInput && !amountInput.value) amountInput.value = topUpDraft.amount || '';
+      container.querySelectorAll('.topup-method').forEach(btn => {
+        const active = btn.dataset.method === topUpDraft.method;
+        btn.classList.toggle('btn-primary', active);
+        btn.classList.toggle('border-black', active);
+      });
+      ['yape','card','bank'].forEach(key => {
+        const block = container.querySelector(`[data-fields="${key}"]`);
+        if (block) block.classList.toggle('hidden', key !== topUpDraft.method);
+      });
+      const summary = container.querySelector('[data-summary]');
+      if (summary) {
+        summary.innerHTML = `
+          <div class="flex items-center justify-between text-sm">
+            <span>Método</span><span class="font-semibold">${methodLabel(topUpDraft.method)}</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span>Monto a recargar</span><span class="font-semibold">${fmt(Math.max(amount,0))} Lukas</span>
+          </div>
+          <div class="flex items-center justify-between text-xs text-habla-600">
+            <span>Abono estimado</span><span class="text-green-700 font-semibold">Instantáneo</span>
+          </div>
+        `;
+      }
+    }
+    function submitTopUpFromInline(){
+      const container = document.getElementById('topUpInline');
+      if (!container) return;
+      const amount = parseInt(container.querySelector('.topup-amount-input')?.value || topUpDraft.amount || 0, 10);
+      const reference = container.querySelector('[name="bankRef"]')?.value?.trim() || container.querySelector('[name="cvv"]')?.value?.trim() || container.querySelector('[name="yapeAlias"]')?.value?.trim();
+      const contact = container.querySelector('[name="contactEmail"]')?.value?.trim();
+      const holder = container.querySelector('[name="fullName"]')?.value?.trim();
+      const methodData = {
+        yape: { phone: container.querySelector('[name="yapeAlias"]')?.value?.trim() },
+        card: {
+          card: container.querySelector('[name="cardNumber"]')?.value?.trim(),
+          exp: container.querySelector('[name="cardExp"]')?.value?.trim(),
+          cvv: container.querySelector('[name="cvv"]')?.value?.trim()
+        },
+        bank: {
+          bank: container.querySelector('[name="bankName"]')?.value?.trim(),
+          reference: container.querySelector('[name="bankRef"]')?.value?.trim()
+        }
+      }[topUpDraft.method] || {};
+      performTopUp({ amount, method: topUpDraft.method, reference, contact, holder, methodData });
+    }
+    function openTopUp(presetAmount=500, presetMethod='yape'){
+      topUpDraft = { method: presetMethod, amount: presetAmount };
+      const go = () => {
+        const panel = document.getElementById('topUpInline');
+        if (!panel) return;
+        const amountInput = panel.querySelector('.topup-amount-input');
+        if (amountInput) amountInput.value = presetAmount || '';
+        updateTopUpSummary('topUpInline');
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        amountInput?.focus({ preventScroll: true });
+      };
+      if (window.location.hash !== '#/wallet') {
+        window.location.hash = '#/wallet';
+        setTimeout(go, 180);
+      } else {
+        go();
+      }
       if (!state.isAuth) openLoginModal("recarga de Lukas");
     }
-    function performTopUp(amount){
-      if (!amount || amount<100) { toast("Ingresa un monto válido", "warn"); return; }
+    function performTopUp(payload){
+      const data = typeof payload === 'number' ? { amount: payload } : (payload || {});
+      const amount = parseInt(data.amount, 10);
+      if (!amount || amount < 100) { toast("Ingresa un monto válido", "warn"); return; }
       if (!state.isAuth) { openLoginModal("recargar Lukas"); return; }
-      logEvent("Payment.Initiated", { amount });
-      state.wallet.cash += amount;
-      state.wallet.cashMovements.unshift({
+      const method = data.method || 'yape';
+      logEvent("Payment.Initiated", { amount, method });
+      state.wallet.topUps.unshift({
         id: uid(),
-        type: "credit",
         amount,
-        method: "Yape/Plin o Tarjeta",
-        status: "settled",
-        note: "Pago confirmado (on-ramp)",
-        ts: nowIso()
+        method,
+        status: "acreditado",
+        reference: data.reference || "Pago confirmado",
+        ts: nowIso(),
+        contact: data.contact || data.holder || ''
       });
-      creditWallet(amount, "payment_settled");
-      logEvent("Payment.Settled", { amount });
+      creditWallet(amount, `recarga:${method}`);
+      logEvent("Payment.Settled", { amount, method });
       if (amount >= 10000) {
         recordRisk({ service: "Pagos", reason: "Alta velocidad de recarga", amount });
       }
@@ -1496,7 +1567,7 @@
             <div class="flex items-center justify-between">
               <div>
                 <h1 class="text-xl font-bold">Billetera y Pagos</h1>
-                <p class="text-sm text-habla-600">Inicia sesión para ver tus saldos, registrar recargas y seguir la trazabilidad de tus Lukas y dinero real.</p>
+                <p class="text-sm text-habla-600">Inicia sesión para ver tus saldos, registrar recargas y seguir la trazabilidad de tus Lukas.</p>
               </div>
               <button class="btn-primary" onclick="openLoginModal('administrar tu billetera')">Ingresar</button>
             </div>
@@ -1514,12 +1585,12 @@
         </tr>
       `).join('');
 
-      const cashRows = state.wallet.cashMovements.map(m => `
+      const topUpRows = state.wallet.topUps.map(t => `
         <tr class="border-t">
-          <td class="py-2">${new Date(m.ts).toLocaleString()}</td>
-          <td class="text-habla-600">${m.method} · ${m.note}</td>
-          <td class="text-right">${m.status}</td>
-          <td class="${m.type==='credit'?'text-green-700':'text-red-700'} font-semibold text-right">${m.type==='credit' ? '+' : '-'}${fmt(m.amount)}</td>
+          <td class="py-2">${new Date(t.ts).toLocaleString()}</td>
+          <td class="text-habla-600">${methodLabel(t.method)} ${t.reference ? `· ${t.reference}` : ''}</td>
+          <td class="text-right capitalize">${t.status}</td>
+          <td class="text-right font-semibold">${fmt(t.amount)} Lukas</td>
         </tr>
       `).join('');
 
@@ -1546,7 +1617,7 @@
           </div>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-4">
+        <div class="space-y-2">
           <div class="card p-4 space-y-2">
             <div class="flex items-center justify-between">
               <div>
@@ -1556,72 +1627,111 @@
               <span class="pill">Activas</span>
             </div>
             <p class="text-sm text-habla-600">Solo las Lukas sirven para comprar tickets y canjear premios. Las Lukas compradas no son reembolsables.</p>
-            <div class="flex gap-2">
-              <button class="btn-primary flex-1" onclick="openTopUp()">Recargar</button>
-              <a class="btn flex-1" href="#/store">Tienda</a>
+            <div>
+              <a class="btn w-full" href="#/store">Ir a tienda</a>
             </div>
           </div>
-
-          <div class="card p-4 space-y-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-sm text-habla-600">Dinero real registrado</div>
-                <div class="text-3xl font-black">S/ ${fmt(state.wallet.cash)}</div>
-              </div>
-              <span class="pill bg-orange-100 text-orange-700">No retirable</span>
-            </div>
-            <p class="text-sm text-habla-600">Aquí ves cada pago que hiciste con Yape/Plin o tarjeta. Sirve para que tengas trazabilidad de tus recargas; el saldo no se usa directamente en juegos.</p>
-            <ul class="text-xs text-habla-600 list-disc list-inside">
-              <li>Se usa solo para convertir en Lukas.</li>
-              <li>Las recargas no se pueden retirar.</li>
-            </ul>
-          </div>
-
-          <div class="card p-4 space-y-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-sm text-habla-600">Identidad y retiros</div>
-                <div class="text-xl font-bold">${verification}</div>
-              </div>
-              <span class="pill">KYC</span>
-            </div>
-            <p class="text-sm text-habla-600">Los retiros de premios requieren cuenta verificada (documento + método de pago). Si falta un dato, tu solicitud quedará en espera.</p>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <div class="card p-2 bg-habla-50 border-dashed">Email: ${state.user?.emailVerified ? 'verificado' : 'pendiente'}</div>
-              <div class="card p-2 bg-habla-50 border-dashed">Identidad: ${state.user?.ageVerified ? 'ok' : 'revisar'}</div>
-            </div>
+          <div class="flex items-center gap-2 text-xs text-habla-600 px-1">
+            <span class="pill">Identidad y retiros</span>
+            <span class="font-semibold">${verification}</span>
+            <span class="text-habla-500">Retiros requieren verificación completa (documento y método de pago).</span>
           </div>
         </div>
 
-        <div class="card p-5 mt-6">
+        <div id="topUpInline" class="card p-5 mt-6 space-y-4">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-              <div class="font-semibold">Recarga rápida de Lukas</div>
-              <p class="text-sm text-habla-600">Recarga en tres pasos: elige monto, paga con QR o tarjeta y espera la confirmación para ver tus Lukas al instante.</p>
+              <div class="font-semibold">Recarga de Lukas en la misma página</div>
+              <p class="text-sm text-habla-600">Elige método, monto y datos aquí mismo; solo verás mensajes de confirmación cuando sea necesario.</p>
             </div>
-            <div class="flex gap-2">
-              <button class="btn" onclick="performTopUp(500)">+500</button>
-              <button class="btn" onclick="performTopUp(1000)">+1,000</button>
-              <button class="btn" onclick="openTopUp()">Otro monto</button>
-            </div>
-          </div>
-          <div class="grid sm:grid-cols-3 gap-3 mt-4 text-sm">
-            <div class="card p-3 bg-habla-50">
-              <div class="font-semibold">Yape / Plin</div>
-              <p class="text-habla-600">Escanea el QR desde tu app y confirma el pago. Es la opción más rápida si estás en el celular.</p>
-            </div>
-            <div class="card p-3 bg-habla-50">
-              <div class="font-semibold">Tarjeta (3DS opcional)</div>
-              <p class="text-habla-600">Ingresa los datos de tu tarjeta en el checkout seguro y confirma. Puedes guardar la tarjeta para futuras recargas.</p>
-            </div>
-            <div class="card p-3 bg-habla-50">
-              <div class="font-semibold">Reglas</div>
-              <ul class="list-disc list-inside text-habla-600">
-                <li>Lukas compradas no se devuelven.</li>
-                <li>El dinero real no se retira; solo genera Lukas para premios y tickets.</li>
-              </ul>
+            <div class="flex gap-2 flex-wrap">
+              <button class="btn" onclick="setTopUpAmount(500)">+500</button>
+              <button class="btn" onclick="setTopUpAmount(1000)">+1,000</button>
+              <button class="btn" onclick="setTopUpAmount(2500)">+2,500</button>
+              <button class="btn" onclick="document.querySelector('#topUpInline .topup-amount-input')?.focus()">Personalizar</button>
             </div>
           </div>
+
+          <div class="card p-4 space-y-3">
+            <div class="font-semibold">Selecciona tu método</div>
+            <div class="grid sm:grid-cols-3 gap-2">
+              <button class="btn topup-method w-full justify-start" data-method="yape" onclick="selectTopUpMethod('yape','topUpInline')">
+                <div class="text-left">
+                  <div class="font-semibold">Yape / Plin</div>
+                  <div class="text-xs text-habla-600">QR o alias, acreditación directa.</div>
+                </div>
+              </button>
+              <button class="btn topup-method w-full justify-start" data-method="card" onclick="selectTopUpMethod('card','topUpInline')">
+                <div class="text-left">
+                  <div class="font-semibold">Tarjeta</div>
+                  <div class="text-xs text-habla-600">Ingresa los datos y confirma en segundos.</div>
+                </div>
+              </button>
+              <button class="btn topup-method w-full justify-start" data-method="bank" onclick="selectTopUpMethod('bank','topUpInline')">
+                <div class="text-left">
+                  <div class="font-semibold">Transferencia rápida</div>
+                  <div class="text-xs text-habla-600">Desde tu banca o billetera digital.</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-3">
+            <div class="md:col-span-2 card p-4 space-y-3">
+              <div class="font-semibold">Monto de recarga</div>
+              <div class="flex flex-wrap gap-2">
+                ${[500,1000,2500,5000].map(v => `
+                  <button class="btn" onclick="setTopUpAmount(${v}, 'topUpInline')">${fmt(v)} Lukas</button>
+                `).join('')}
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-habla-600 mb-1">Monto personalizado</label>
+                <input class="input topup-amount-input" type="number" min="100" step="50" placeholder="Ingresa el monto" oninput="updateTopUpSummary('topUpInline')" />
+              </div>
+            </div>
+            <div class="card p-4 space-y-2">
+              <div class="font-semibold">Resumen de recarga</div>
+              <div data-summary class="space-y-2 text-sm text-habla-700"></div>
+              <div class="text-xs text-habla-500">Se acreditará directo a tus Lukas sin abrir nuevas ventanas.</div>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-3">
+            <div class="card p-4 space-y-3">
+              <div class="font-semibold">Datos del método</div>
+              <div data-fields="yape" class="space-y-2">
+                <label class="block text-xs text-habla-600">Número o alias para QR</label>
+                <input class="input" name="yapeAlias" type="text" placeholder="999 999 999" oninput="updateTopUpSummary('topUpInline')" />
+              </div>
+              <div data-fields="card" class="space-y-2 hidden">
+                <label class="block text-xs text-habla-600">Número de tarjeta</label>
+                <input class="input" name="cardNumber" type="text" placeholder="4111 1111 1111 1111" oninput="updateTopUpSummary('topUpInline')" />
+                <div class="grid grid-cols-2 gap-2">
+                  <input class="input" name="cardExp" type="text" placeholder="MM/AA" oninput="updateTopUpSummary('topUpInline')" />
+                  <input class="input" name="cvv" type="text" placeholder="CVV o referencia" oninput="updateTopUpSummary('topUpInline')" />
+                </div>
+              </div>
+              <div data-fields="bank" class="space-y-2 hidden">
+                <label class="block text-xs text-habla-600">Banco o billetera de origen</label>
+                <input class="input" name="bankName" type="text" placeholder="Interbank, BCP, etc." oninput="updateTopUpSummary('topUpInline')" />
+                <label class="block text-xs text-habla-600">Referencia de transferencia</label>
+                <input class="input" name="bankRef" type="text" placeholder="Código o referencia" oninput="updateTopUpSummary('topUpInline')" />
+              </div>
+            </div>
+            <div class="card p-4 space-y-3">
+              <div class="font-semibold">Datos de contacto y confirmación</div>
+              <div class="space-y-2">
+                <label class="block text-xs text-habla-600">Nombre y apellidos</label>
+                <input class="input" name="fullName" type="text" placeholder="Como figura en tu documento" oninput="updateTopUpSummary('topUpInline')" />
+              </div>
+              <div class="space-y-2">
+                <label class="block text-xs text-habla-600">Correo para comprobante</label>
+                <input class="input" name="contactEmail" type="email" placeholder="tu@email.com" oninput="updateTopUpSummary('topUpInline')" />
+              </div>
+              <button class="btn-primary w-full" onclick="submitTopUpFromInline()">Acreditar Lukas ahora</button>
+            </div>
+          </div>
+        </div>
         </div>
 
         <div class="grid md:grid-cols-5 gap-4 mt-6">
@@ -1638,14 +1748,14 @@
 
           <div class="md:col-span-2 card p-5">
             <div class="flex items-center justify-between mb-2">
-              <div class="font-semibold">Registro de dinero real</div>
-              <span class="text-xs text-habla-500">Recargas hechas con Yape/Plin o tarjeta</span>
+              <div class="font-semibold">Recargas recientes</div>
+              <span class="text-xs text-habla-500">Pagos rápidos acreditados como Lukas</span>
             </div>
             <table class="w-full text-sm">
-              <thead><tr class="text-left text-habla-600"><th class="py-2">Fecha</th><th>Método</th><th class="text-right">Estado</th><th class="text-right">Monto</th></tr></thead>
-              <tbody>${cashRows || `<tr><td class="py-3 text-habla-600" colspan="4">Sin recargas registradas.</td></tr>`}</tbody>
+              <thead><tr class="text-left text-habla-600"><th class="py-2">Fecha</th><th>Método</th><th class="text-right">Estado</th><th class="text-right">Lukas</th></tr></thead>
+              <tbody>${topUpRows || `<tr><td class="py-3 text-habla-600" colspan="4">Sin recargas registradas.</td></tr>`}</tbody>
             </table>
-            <p class="text-xs text-habla-500 mt-2">Usa este historial para confirmar tus pagos. Solo las Lukas se usan como medio de pago dentro de Habla!.</p>
+            <p class="text-xs text-habla-500 mt-2">Todo se procesa en la misma pantalla; solo verás mensajes de confirmación cuando sea necesario.</p>
           </div>
         </div>
 
@@ -1654,7 +1764,7 @@
             <div class="font-semibold">Retiros de premios</div>
             <span class="text-xs text-habla-500">Requiere verificación completa</span>
           </div>
-          <p class="text-sm text-habla-600 mb-3">Solo se procesan retiros provenientes de premios liquidados en Lukas. El dinero real no es retirable; los canjes se hacen en la Tienda. Si faltan datos de verificación, tu retiro pasará a revisión.</p>
+          <p class="text-sm text-habla-600 mb-3">Solo se procesan retiros provenientes de premios liquidados en Lukas. Las recargas sirven para jugar y canjear; si falta verificación, tu retiro pasará a revisión.</p>
           <table class="w-full text-sm">
             <thead><tr class="text-left text-habla-600"><th class="py-2">Fecha</th><th>Destino</th><th class="text-right">Monto</th><th class="text-right">Estado</th></tr></thead>
             <tbody>${withdrawalRows || `<tr><td class="py-3 text-habla-600" colspan="4">Aún no has solicitado retiros.</td></tr>`}</tbody>
@@ -1894,6 +2004,7 @@
       app.classList.add('fade-enter','fade-enter-active');
 
       renderAuthArea();
+      if (route === "wallet") updateTopUpSummary('topUpInline');
     }
     window.addEventListener('hashchange', router);
 
