@@ -1617,7 +1617,7 @@
           </div>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-4">
+        <div class="space-y-2">
           <div class="card p-4 space-y-2">
             <div class="flex items-center justify-between">
               <div>
@@ -1631,20 +1631,10 @@
               <a class="btn w-full" href="#/store">Ir a tienda</a>
             </div>
           </div>
-
-          <div class="card p-4 space-y-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-sm text-habla-600">Identidad y retiros</div>
-                <div class="text-xl font-bold">${verification}</div>
-              </div>
-              <span class="pill">KYC</span>
-            </div>
-            <p class="text-sm text-habla-600">Los retiros de premios requieren cuenta verificada (documento + método de pago). Si falta un dato, tu solicitud quedará en espera.</p>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <div class="card p-2 bg-habla-50 border-dashed">Email: ${state.user?.emailVerified ? 'verificado' : 'pendiente'}</div>
-              <div class="card p-2 bg-habla-50 border-dashed">Identidad: ${state.user?.ageVerified ? 'ok' : 'revisar'}</div>
-            </div>
+          <div class="flex items-center gap-2 text-xs text-habla-600 px-1">
+            <span class="pill">Identidad y retiros</span>
+            <span class="font-semibold">${verification}</span>
+            <span class="text-habla-500">Retiros requieren verificación completa (documento y método de pago).</span>
           </div>
         </div>
 
